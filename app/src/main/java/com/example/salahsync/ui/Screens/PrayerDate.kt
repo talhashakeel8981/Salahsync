@@ -2,12 +2,12 @@ package com.example.salahsync.ui.Screens
 
 data class Prayer(
     val name: String,
-    val iconRes: Int
+    val time: String
 )
 val prayers = listOf(
-    Prayer("Fajr", android.R.drawable.ic_dialog_info), // Placeholder icon
-    Prayer("Dhuhr", android.R.drawable.ic_dialog_info),
-    Prayer("Asr", android.R.drawable.ic_dialog_info),
-    Prayer("Maghrib", android.R.drawable.ic_dialog_info),
-    Prayer("Isha", android.R.drawable.ic_dialog_info)
+    Prayer("Fajr", "05:00 AM"),
+    Prayer("Dhuhr", "12:30 PM"),
+    Prayer("Asr", "03:45 PM"),
+    Prayer("Maghrib", "06:30 PM"),
+    Prayer("Isha", "08:00 PM")
 )

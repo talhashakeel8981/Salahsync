@@ -1,5 +1,6 @@
 package com.example.salahsync
 
+import PrayerScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,7 +20,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-//            prayerScreen()
+            PrayerScreen()
         }
     }
 }
