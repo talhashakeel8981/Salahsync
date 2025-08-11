@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -24,23 +25,42 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.salahsync.ui.Screens.Setting.SearchScreen
+import com.example.salahsync.ui.Screens.Setting.SettingScreen
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Color
+import com.example.salahsync.R
 
 @Composable
 
-fun TopBottom()
-{
-    Scaffold (
-        topBar = {SalahTopBar()},
-        bottomBar = { SalahBottomBar() }
-    )
-    {
-paddingValues ->
+
+fun TopBottom() {
+    val navController = rememberNavController()
+
+    Scaffold(
+        topBar = { SalahTopBar() },
+        bottomBar = { SalahBottomBar(navController) }
+    ) { paddingValues ->
         Box(
-     modifier = Modifier
-         .fillMaxSize()
-         .padding(paddingValues)
-        )
-        PrayerScreen()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            NavHost(
+                navController = navController,       // <---- Here!
+                startDestination = "prayer"           // <---- Define your start screen route
+            ) {
+                composable("prayer") { PrayerScreen() }
+                composable("search") { SearchScreen() }
+                composable("settings") { SettingScreen() }
+            }
+        }
     }
 }
 
@@ -51,45 +71,48 @@ fun SalahTopBar() {
         modifier = Modifier
             .fillMaxWidth()
             .height(64.dp) // custom height
-            .background(MaterialTheme.colorScheme.primary),
+            .background(color = Color.White),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "Today, 6 August 2025",
-                color = MaterialTheme.colorScheme.onPrimary
+                color = Color.Black
             )
             Text(
                 text = "12 Safar 1447",
-                color = MaterialTheme.colorScheme.onPrimary
+                color = Color.Black
             )
         }
     }
 }
 
+
+
+
 @Composable
-fun SalahBottomBar() {
-    NavigationBar {
+fun SalahBottomBar(navController: NavController) {
+    NavigationBar(
+        containerColor = Color.White   // <-- sets white background correctly
+    ) {
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-            label = { Text("Home") },
-            selected = true,
-            onClick = { /* Navigate to Home */ }
+            icon = { Icon(painterResource(id = R.drawable.home), contentDescription = "Home", modifier = Modifier.size(20.dp)) },
+            selected = false,
+            onClick = { navController.navigate("prayer") }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-            label = { Text("Search") },
+            icon = { Icon(painterResource(id = R.drawable.stats), contentDescription = "Search", modifier = Modifier.size(20.dp)) },
             selected = false,
-            onClick = { /* Navigate to Search */ }
+            onClick = { navController.navigate("search") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-            label = { Text("Settings") },
             selected = false,
-            onClick = { /* Navigate to Settings */ }
+            onClick = { navController.navigate("settings") }
         )
     }
 }
+
 
 
 

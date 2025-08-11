@@ -51,11 +51,13 @@ fun PrayerList(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 12.dp, horizontal = 16.dp),
+
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Prayer icon
                     Image(
                         painter = painterResource(id = prayer.iconRes),
+                        colorFilter = ColorFilter.tint(Color(0xFF2196F3)), // Material Blue 500
                         contentDescription = prayer.name,
                         modifier = Modifier.size(24.dp)
                     )
@@ -105,19 +107,20 @@ fun PrayerScreen() {
         PrayerTilesData("Isha", R.drawable.ic_esha)
     )
 
-    // ✅ Main container for the screen
+    //  Main container for the screen
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 80.dp)
+            .background(Color(243, 245, 248)) //
     ) {
-        // ✅ Pass statuses to PrayerList
+        //  Pass statuses to PrayerList
         PrayerList(prayers, prayerStatuses) { clickedPrayer ->
             selectedPrayer = clickedPrayer
             coroutineScope.launch { sheetState.show() }
         }
 
-        // ✅ Show bottom sheet when user taps a prayer
+        //  Show bottom sheet when user taps a prayer
         if (sheetState.isVisible && selectedPrayer != null) {
             ModalBottomSheet(
                 onDismissRequest = {
@@ -132,13 +135,13 @@ fun PrayerScreen() {
                         .padding(24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // ✅ Title text
+
                     Text(
                         text = "How did you complete ${selectedPrayer?.name} today?",
                         style = MaterialTheme.typography.titleMedium
                     )
 
-                    // ✅ Option 1 — Not Prayed
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -160,7 +163,7 @@ fun PrayerScreen() {
                         Text(text = "Not Prayed", fontSize = 16.sp)
                     }
 
-                    // ✅ Option 2 — Prayed Late
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -182,12 +185,12 @@ fun PrayerScreen() {
                         Text(text = "Prayed Late", fontSize = 16.sp)
                     }
 
-                    // ✅ Option 3 — On Time
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                // ⬅️ ✅ CHANGE
+
                                 prayerStatuses = prayerStatuses + (selectedPrayer!!.name to "✅")
                                 coroutineScope.launch { sheetState.hide() }
                             }
@@ -204,7 +207,7 @@ fun PrayerScreen() {
                         Text(text = "On Time", fontSize = 16.sp)
                     }
 
-                    // ✅ Option 4 — In Jamaat
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
