@@ -1,5 +1,4 @@
 package com.example.salahsync.ui.Screens
-import android.R.color
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.salahsync.R
 import kotlinx.coroutines.launch
-
+import java.time.LocalDate
 
 
 // ✅ Composable to show the list of 5 prayers
@@ -44,13 +44,18 @@ fun PrayerList(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp)
+                    .padding(top = 16.dp, start = 10.dp, end = 10.dp)
+                    .height(85.dp)
+                    .clip(RoundedCornerShape(18.dp))
+
                     .clickable { onPrayerClick(prayer) } // When tapped, call the callback
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .background(color = Color.White)
                         .padding(vertical = 12.dp, horizontal = 16.dp),
+
 
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -59,7 +64,7 @@ fun PrayerList(
                         painter = painterResource(id = prayer.iconRes),
                         colorFilter = ColorFilter.tint(Color(0xFF2196F3)), // Material Blue 500
                         contentDescription = prayer.name,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(60.dp)
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -68,7 +73,7 @@ fun PrayerList(
                     Text(
                         text = prayer.name,
                         modifier = Modifier.weight(1f), // pushes status to the right
-                        fontSize = 16.sp
+                        fontSize = 20.sp
                     )
 
                     // Status with slanted background
@@ -89,7 +94,7 @@ fun PrayerList(
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PrayerScreen() {
+fun PrayerScreen(value: LocalDate) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
 
@@ -131,7 +136,7 @@ fun PrayerScreen() {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.6f)
+                        .fillMaxHeight(0.8f)
                         .padding(24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -235,8 +240,8 @@ fun PrayerScreen() {
 }
 
 
-@Preview(showSystemUi = true)
-@Composable
-fun PrayerTrackingScreenPreview() {
-    PrayerScreen()
-}
+//@Preview(showSystemUi = true)
+//@Composable
+//fun PrayerTrackingScreenPreview() {
+//    PrayerScreen(selectedDate.value)
+//}
