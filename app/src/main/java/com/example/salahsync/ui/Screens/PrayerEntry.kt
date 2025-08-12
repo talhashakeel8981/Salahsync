@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 
-// ✅ Composable to show the list of 5 prayers
+//  Composable to show the list of 5 prayers
 @Composable
 fun PrayerList(
     prayers: List<PrayerTilesData>, // Your existing prayer list
@@ -134,7 +134,7 @@ fun PrayerScreen(value: LocalDate) {
                 sheetState = sheetState
             ) {
                 Column(
-                    modifier = Modifier
+                    modifier = Modifier                                                                                                                  
                         .fillMaxWidth()
                         .fillMaxHeight(0.8f)
                         .padding(24.dp),
@@ -151,17 +151,16 @@ fun PrayerScreen(value: LocalDate) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                // ⬅️ ✅ CHANGE — Update prayerStatuses before closing
+                                // ⬅ CHANGE — Update prayerStatuses before closing
                                 prayerStatuses = prayerStatuses + (selectedPrayer!!.name to "❌")
                                 coroutineScope.launch { sheetState.hide() }
                             }
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
+                        Image(
+                            painter = painterResource(id = R.drawable.notprayed),
                             contentDescription = "Not Prayed",
-                            tint = Color.Red,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -170,20 +169,21 @@ fun PrayerScreen(value: LocalDate) {
 
 
                     Row(
+
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
                                 // ⬅️ ✅ CHANGE
-                                prayerStatuses = prayerStatuses + (selectedPrayer!!.name to "⏰")
+                                prayerStatuses = prayerStatuses + (selectedPrayer!!.name to "R.drawable.notprayed")
                                 coroutineScope.launch { sheetState.hide() }
                             }
+
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = "Late",
-                            tint = Color(0xFFFF9800),
+                        Image(
+                            painter = painterResource(id = R.drawable.prayedlate) ,
+                            contentDescription = "Prayed Late",
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -202,10 +202,9 @@ fun PrayerScreen(value: LocalDate) {
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "On Time",
-                            tint = Color.Green,
+                        Image(
+                            painter = painterResource(id = R.drawable.prayedontime),
+                            contentDescription = "Prayed On Time",
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -224,10 +223,9 @@ fun PrayerScreen(value: LocalDate) {
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Home,
+                        Image(
+                            painter = painterResource(id = R.drawable.jamat) ,
                             contentDescription = "In Jamaat",
-                            tint = Color.Blue,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
