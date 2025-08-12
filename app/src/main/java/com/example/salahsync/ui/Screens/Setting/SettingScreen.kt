@@ -23,38 +23,35 @@ import com.example.salahsync.ui.Screens.SalahBottomBar
 import com.example.salahsync.ui.Screens.SalahTopBar
 import java.time.LocalDate
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun TopBottom() {
-    val navController = rememberNavController()
-    val selectedDate = remember { mutableStateOf(LocalDate.now()) } // Shared state
-
-    Scaffold(
-        topBar = {
-            SalahTopBar(
-                selectedDate = selectedDate.value,
-                onDateSelected = { selectedDate.value = it }
-            )
-        },
-        bottomBar = { SalahBottomBar(navController) }
-    ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = "prayer",
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable("prayer") {
-                PrayerScreen(selectedDate.value) // Pass date if needed
-            }
-//            composable("search") {
-//                SearchScreen(selectedDate.value) // Pass date if needed
+//@RequiresApi(Build.VERSION_CODES.O)
+//@Composable
+//fun TopBottom() {
+//    val navController = rememberNavController()
+//    val selectedDate = remember { mutableStateOf(LocalDate.now()) } // Shared state
+//
+//    Scaffold(
+//        topBar = {
+//            SalahTopBar(
+//                selectedDate = selectedDate.value,
+//                onDateSelected = { selectedDate.value = it }
+//            )
+//        },
+//        bottomBar = { SalahBottomBar(navController) }
+//    ) { paddingValues ->
+//        NavHost(
+//            navController = navController,
+//            startDestination = "prayer",
+//            modifier = Modifier.padding(paddingValues)
+//        )
+////            composable("search") {
+////                SearchScreen(selectedDate.value) // Pass date if needed
+////            }
+//            composable("settings") {
+//                SettingScreen(selectedDate.value) // Pass date if needed
 //            }
-            composable("settings") {
-                SettingScreen(selectedDate.value) // Pass date if needed
-            }
-        }
-    }
-}
+//        }
+//    }
+//}
 
 
 
@@ -68,17 +65,11 @@ fun TopBottom() {
 //fun Setting() { Text("Settings Screen") }
 
 //Change
-@Composable
-fun PrayerScreen(selectedDate: LocalDate) {
-    Text("Prayer Screen — $selectedDate")
-}
+
 
 //@Composable
 //fun SearchScreen(selectedDate: LocalDate) {
 //    Text("Search Screen — $selectedDate")
 //}
 
-@Composable
-fun SettingScreen(selectedDate: LocalDate) { // also fix name: Setting → SettingScreen
-    Text("Settings Screen — $selectedDate")
-}
+

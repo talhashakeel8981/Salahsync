@@ -6,11 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -134,7 +129,7 @@ fun PrayerScreen(value: LocalDate) {
                 sheetState = sheetState
             ) {
                 Column(
-                    modifier = Modifier                                                                                                                  
+                    modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight(0.8f)
                         .padding(24.dp),
@@ -174,7 +169,7 @@ fun PrayerScreen(value: LocalDate) {
                             .fillMaxWidth()
                             .clickable {
                                 // ⬅️ ✅ CHANGE
-                                prayerStatuses = prayerStatuses + (selectedPrayer!!.name to "R.drawable.notprayed")
+                                prayerStatuses = prayerStatuses + (selectedPrayer!!.name to "")
                                 coroutineScope.launch { sheetState.hide() }
                             }
 

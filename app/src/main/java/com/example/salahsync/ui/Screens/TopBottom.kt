@@ -40,40 +40,50 @@ import androidx.compose.runtime.*
 
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
+import com.example.salahsync.ui.Screens.Setting.StatisticsScreen
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+// ---------- TopBottom.kt (fixed) ----------
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TopBottom() {
     val navController = rememberNavController()
-
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
 
-    Scaffold(
-        topBar = {
-            //  Updated to show dynamic selected date & Hijri date
-            SalahTopBar(
-                selectedDate = selectedDate.value,
-                onDateSelected = { selectedDate.value = it }
-            )
-        },
-        bottomBar = { SalahBottomBar(navController) }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Content
+        Box(modifier = Modifier.weight(1f)) {
             NavHost(
                 navController = navController,
                 startDestination = "prayer"
             ) {
-                composable("prayer") { PrayerScreen(selectedDate.value) }
-//                composable("search") { SearchScreen() }
-                composable("settings") { SettingScreen() }
+                composable("prayer") {
+                    Column {
+                        // ✅ Top bar only here
+                        SalahTopBar(
+                            selectedDate = selectedDate.value,
+                            onDateSelected = { selectedDate.value = it }
+                        )
+                        Box(modifier = Modifier.weight(1f)) {
+                            PrayerScreen(selectedDate.value)
+                        }
+                    }
+                }
+
+                // ---------- NOTE: route name is "stats" now ----------
+                composable("stats") {                                  // ← CHANGED: use "stats" route
+                    StatisticsScreen()
+                }
+
+                composable("settings") {
+                    SettingScreen()
+                }
             }
         }
+
+        // Bottom Bar — always visible
+        SalahBottomBar(navController) // make sure this uses the same route names
     }
 }
 
@@ -202,9 +212,9 @@ fun SalahBottomBar(navController: NavController) {
                 selectedIconColor = Color(0xFF9EA3A9))
         )
         NavigationBarItem(
-            icon = { Icon(painterResource(id = R.drawable.stats), contentDescription = "Search", modifier = Modifier.size(20.dp)) },
+            icon = { Icon(painterResource(id = R.drawable.stats), contentDescription = "stats", modifier = Modifier.size(20.dp)) },
             selected = false,
-            onClick = { navController.navigate("search") }
+            onClick = { navController.navigate("stats") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
