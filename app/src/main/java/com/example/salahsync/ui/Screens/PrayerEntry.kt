@@ -30,63 +30,57 @@ import java.time.LocalDate
 //  Composable to show the list of 5 prayers
 @Composable
 fun PrayerList(
-    prayers: List<PrayerTilesData>, // Your existing prayer list
-    prayerStatuses: Map<String, String>, // New: Map prayer name -> emoji for now
+    prayers: List<PrayerTilesData>,
+    prayerStatusImages: Map<String, Int>, // ✅ store status images
     onPrayerClick: (PrayerTilesData) -> Unit
 ) {
     LazyColumn {
-        items(prayers) { prayer -> // For each prayer, show a card
+        items(prayers) { prayer ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp, start = 10.dp, end = 10.dp)
                     .height(85.dp)
                     .clip(RoundedCornerShape(18.dp))
-
-                    .clickable { onPrayerClick(prayer) } // When tapped, call the callback
+                    .clickable { onPrayerClick(prayer) }
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(color = Color.White)
+                        .background(Color.White)
                         .padding(vertical = 12.dp, horizontal = 16.dp),
-
-
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Prayer icon
+                    // Prayer name icon (left side fixed)
                     Image(
                         painter = painterResource(id = prayer.iconRes),
-                        colorFilter = ColorFilter.tint(Color(0xFF2196F3)), // Material Blue 500
                         contentDescription = prayer.name,
+                        colorFilter = ColorFilter.tint(Color(0,122,255)),
                         modifier = Modifier.size(60.dp)
+
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // Prayer name
                     Text(
                         text = prayer.name,
-                        modifier = Modifier.weight(1f), // pushes status to the right
+                        modifier = Modifier.weight(1f),
                         fontSize = 20.sp
                     )
 
-                    // Status with slanted background
-                    Surface(
-                        shape = RowDesign(cornerRadius = 8.dp, slantWidth = 16.dp),
-                        color = Color(186, 186, 191)
-                    ) {
-                        Text(
-                            text = prayerStatuses[prayer.name] ?: "          ",
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            fontSize = 14.sp
-                        )
-                    }
+                    // ✅ Right side: Status image or placeholder
+                    val statusIcon = prayerStatusImages[prayer.name] ?: R.drawable.ic_launcher_background
+                    Image(
+                        painter = painterResource(id = statusIcon),
+                        contentDescription = "Prayer Status",
+                        modifier = Modifier.size(32.dp)
+                    )
                 }
             }
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrayerScreen(value: LocalDate) {
@@ -94,10 +88,7 @@ fun PrayerScreen(value: LocalDate) {
     val coroutineScope = rememberCoroutineScope()
 
     var selectedPrayer by remember { mutableStateOf<PrayerTilesData?>(null) }
-
-    // ⬅️ ✅ NEW — This stores the prayer status for each prayer
-    var prayerStatuses by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-
+    var prayerStatusImages by remember { mutableStateOf<Map<String, Int>>(emptyMap()) } // ✅
 
     val prayers = listOf(
         PrayerTilesData("Fajr", R.drawable.ic_fajr),
@@ -107,25 +98,23 @@ fun PrayerScreen(value: LocalDate) {
         PrayerTilesData("Isha", R.drawable.ic_esha)
     )
 
-    //  Main container for the screen
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 80.dp)
-            .background(Color(243, 245, 248)) //
+            .background(Color(243, 245, 248))
     ) {
-        //  Pass statuses to PrayerList
-        PrayerList(prayers, prayerStatuses) { clickedPrayer ->
+        PrayerList(
+            prayers,
+            prayerStatusImages
+        ) { clickedPrayer ->
             selectedPrayer = clickedPrayer
             coroutineScope.launch { sheetState.show() }
         }
 
-        //  Show bottom sheet when user taps a prayer
         if (sheetState.isVisible && selectedPrayer != null) {
             ModalBottomSheet(
-                onDismissRequest = {
-                    coroutineScope.launch { sheetState.hide() }
-                },
+                onDismissRequest = { coroutineScope.launch { sheetState.hide() } },
                 sheetState = sheetState
             ) {
                 Column(
@@ -135,19 +124,17 @@ fun PrayerScreen(value: LocalDate) {
                         .padding(24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-
                     Text(
                         text = "How did you complete ${selectedPrayer?.name} today?",
                         style = MaterialTheme.typography.titleMedium
                     )
 
-
+                    // ✅ Each option sets a different status image
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                // ⬅ CHANGE — Update prayerStatuses before closing
-                                prayerStatuses = prayerStatuses + (selectedPrayer!!.name to "❌")
+                                prayerStatusImages = prayerStatusImages + (selectedPrayer!!.name to R.drawable.notprayed)
                                 coroutineScope.launch { sheetState.hide() }
                             }
                             .padding(vertical = 8.dp),
@@ -156,42 +143,40 @@ fun PrayerScreen(value: LocalDate) {
                         Image(
                             painter = painterResource(id = R.drawable.notprayed),
                             contentDescription = "Not Prayed",
-                            modifier = Modifier.size(24.dp)
-                        )
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Black),
+
+                            )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(text = "Not Prayed", fontSize = 16.sp)
                     }
 
-
                     Row(
-
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                // ⬅️ ✅ CHANGE
-                                prayerStatuses = prayerStatuses + (selectedPrayer!!.name to "")
+                                prayerStatusImages = prayerStatusImages + (selectedPrayer!!.name to R.drawable.prayedlate)
                                 coroutineScope.launch { sheetState.hide() }
                             }
-
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.prayedlate) ,
+                            painter = painterResource(id = R.drawable.prayedlate),
                             contentDescription = "Prayed Late",
-                            modifier = Modifier.size(24.dp)
-                        )
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Red),
+
+                            )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(text = "Prayed Late", fontSize = 16.sp)
                     }
-
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-
-                                prayerStatuses = prayerStatuses + (selectedPrayer!!.name to "✅")
+                                prayerStatusImages = prayerStatusImages + (selectedPrayer!!.name to R.drawable.prayedontime)
                                 coroutineScope.launch { sheetState.hide() }
                             }
                             .padding(vertical = 8.dp),
@@ -199,29 +184,29 @@ fun PrayerScreen(value: LocalDate) {
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.prayedontime),
-                            contentDescription = "Prayed On Time",
-                            modifier = Modifier.size(24.dp)
+                            contentDescription = "On Time",
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Yellow)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(text = "On Time", fontSize = 16.sp)
                     }
 
-
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                // ⬅️ ✅ CHANGE
-                                prayerStatuses = prayerStatuses + (selectedPrayer!!.name to "🕌")
+                                prayerStatusImages = prayerStatusImages + (selectedPrayer!!.name to R.drawable.jamat)
                                 coroutineScope.launch { sheetState.hide() }
                             }
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.jamat) ,
+                            painter = painterResource(id = R.drawable.jamat),
                             contentDescription = "In Jamaat",
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.Green)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(text = "In Jamaat", fontSize = 16.sp)
