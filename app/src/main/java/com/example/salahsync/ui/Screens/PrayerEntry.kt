@@ -31,7 +31,7 @@ import java.time.LocalDate
 @Composable
 fun PrayerList(
     prayers: List<PrayerTilesData>,
-    prayerStatusImages: Map<String, Int>, // ✅ store status images
+    prayerStatusImages: Map<String, Int>, //  store status images
     onPrayerClick: (PrayerTilesData) -> Unit
 ) {
     LazyColumn {
@@ -68,7 +68,7 @@ fun PrayerList(
                         fontSize = 20.sp
                     )
 
-                    // ✅ Right side: Status image or placeholder
+                    //  Right side: Status image or placeholder
                     val statusIcon = prayerStatusImages[prayer.name] ?: R.drawable.ic_launcher_background
                     Image(
                         painter = painterResource(id = statusIcon),
@@ -129,7 +129,7 @@ fun PrayerScreen(value: LocalDate) {
                         style = MaterialTheme.typography.titleMedium
                     )
 
-                    // ✅ Each option sets a different status image
+                    // Each option sets a different status image
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

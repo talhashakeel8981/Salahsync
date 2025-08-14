@@ -77,7 +77,7 @@ fun TopBottom() {
                 }
 
                 composable("settings") {
-                    SettingScreen()
+                    SettingScreen(navController)
                 }
             }
         }
