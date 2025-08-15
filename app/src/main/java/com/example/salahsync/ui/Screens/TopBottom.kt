@@ -41,6 +41,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
 import com.example.salahsync.ui.Screens.Setting.StatisticsScreen
+import com.example.salahsync.ui.Screens.SettingsOptions.AppearenceScreen
+import com.example.salahsync.ui.Screens.SettingsOptions.HepticFeedBackScreen
+import com.example.salahsync.ui.Screens.SettingsOptions.ManageDeedsScreen
+import com.example.salahsync.ui.Screens.SettingsOptions.NotificationScreen
+import com.example.salahsync.ui.Screens.SettingsOptions.PrivacyPolicyScreen
+import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -48,44 +54,36 @@ import java.time.format.DateTimeFormatter
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TopBottom() {
-    val navController = rememberNavController()
+    val bottomNavController = rememberNavController()
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Content
         Box(modifier = Modifier.weight(1f)) {
             NavHost(
-                navController = navController,
+                navController = bottomNavController,
                 startDestination = "prayer"
             ) {
                 composable("prayer") {
                     Column {
-                        // ✅ Top bar only here
-                        SalahTopBar(
-                            selectedDate = selectedDate.value,
-                            onDateSelected = { selectedDate.value = it }
-                        )
-                        Box(modifier = Modifier.weight(1f)) {
-                            PrayerScreen(selectedDate.value)
-                        }
+                        SalahTopBar(selectedDate.value) { selectedDate.value = it }
+                        Box(modifier = Modifier.weight(1f)) { PrayerScreen(selectedDate.value) }
                     }
                 }
 
-                // ---------- NOTE: route name is "stats" now ----------
-                composable("stats") {                                  // ← CHANGED: use "stats" route
-                    StatisticsScreen()
-                }
+                composable("stats") { StatisticsScreen() }
 
+                // Settings entry point with nested nav
                 composable("settings") {
-                    SettingScreen(navController)
+                    SettingsNavHost()
                 }
             }
         }
 
-        // Bottom Bar — always visible
-        SalahBottomBar(navController) // make sure this uses the same route names
+        // Bottom navigation
+        SalahBottomBar(bottomNavController)
     }
 }
+
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -223,6 +221,7 @@ fun SalahBottomBar(navController: NavController) {
         )
     }
 }
+
 
 
 @RequiresApi(Build.VERSION_CODES.O)
