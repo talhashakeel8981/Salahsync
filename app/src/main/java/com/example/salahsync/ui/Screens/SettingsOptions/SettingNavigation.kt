@@ -20,28 +20,28 @@ fun SettingsNavHost() {
             SettingScreen(
                 onNotificationsClick = { settingsNavController.navigate("notifications") },
                 onManageDeedsClick = { settingsNavController.navigate("manage_deeds") },
-                onAppearanceClick = { settingsNavController.navigate("appearance") },
+                appearence = { settingsNavController.navigate("appearence") },
                 onHapticClick = { settingsNavController.navigate("haptic_feedbacks") },
                 onPrivacyPolicyClick = { settingsNavController.navigate("privacy") },
-                feedback = {settingsNavController.navigate("feedbacks")},
-                onDataBackupClick={settingsNavController.navigate("data")},
-                tracking = {settingsNavController.navigate("trackings")},
-                
+                feedback = { settingsNavController.navigate("feedbacks") },
+                databackup = { settingsNavController.navigate("databackup") },
+                tracking = { settingsNavController.navigate("trackings") },
+                invite = { settingsNavController.navigate("invite") },
+                emailfeedback = { settingsNavController.navigate("emailfeedback") },
+                rateus = {settingsNavController.navigate("rateus")}
+            )
         }
+
         composable("feedbacks"){FeedBackScreen(onBack = {settingsNavController.popBackStack()})}
         composable("notifications") { NotificationScreen(onBack = { settingsNavController.popBackStack() }) }
         composable("manage_deeds") { ManageDeedsScreen(onBack = { settingsNavController.popBackStack() }) }
-        composable("invitefriends"){ InviteFriendsScreen (onBack = {settingsNavController.popBackStack()})}
+        composable("invite"){ InviteFriendsScreen (onBack = {settingsNavController.popBackStack()})}
         composable("privacy"){ PrivacyPolicyScreen (onBack = {settingsNavController.popBackStack()})}
-        composable("trackings"){ TrackingReasonScreen (onBack = {settingsNavController.popBackStack()})},
-
-
-//        composable("data"){ DataBackupScreen (onBack ={settingsNavController()})}
-//        composable("")
-
-//        composable("appearance") { AppearenceScreen(onBack = { settingsNavController.popBackStack() }) }
-//        composable("haptic_feedbacks") { HepticFeedBackScreen(onBack = { settingsNavController.popBackStack() }) }
-//        composable("privacy_policy") { PrivacyPolicyScreen(onBack = { settingsNavController.popBackStack() }) }
+        composable("trackings"){ TrackingReasonScreen (onBack = {settingsNavController.popBackStack()})}
+        composable ("emailfeedback"){EmailFeedback (onBack ={settingsNavController.popBackStack()} )}
+        composable ("databackup"){DataBackupScreen (onBack = {settingsNavController.popBackStack()})}
+        composable ("appearence"){AppearenceScreen (onBack = {settingsNavController.popBackStack()})}
+        composable("rateus"){LoveSalahsync(onBack = {settingsNavController.popBackStack()}) }
     }
 }
 
