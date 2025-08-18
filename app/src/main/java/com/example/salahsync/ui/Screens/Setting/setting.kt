@@ -2,6 +2,7 @@ package com.example.salahsync.ui.Screens.Setting
 
 //import androidx.compose.foundation.R
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +33,8 @@ import com.example.salahsync.ui.Screens.SettingsOptions.SettingItem
 import com.example.salahsync.ui.Screens.SettingsOptions.SettingSection
 import com.example.salahsync.R
 import androidx.compose.material.*
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,24 +51,27 @@ fun SettingScreen(
     databackup:()-> Unit,
     rateus:()-> Unit
 ) {
-    // ✅ NEW: Scaffold wrapper added
     Scaffold(
         topBar = {
-            // ✅ NEW: Centered TopAppBar for "Settings"
-            TopAppBar(
-                title = { Text("Settings", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center) },
-                backgroundColor = MaterialTheme.colors.surface,
-                elevation = 4.dp
+            CenterAlignedTopAppBar(
+                title = { Text("Settings") },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
+                // If you want a shadow: add `modifier = Modifier.shadow(4.dp)`
             )
         }
     ) { innerPadding ->
 
         LazyColumn(
             modifier = Modifier
-                .padding(innerPadding) // ✅ NEW: Respect Scaffold padding
-                .padding(16.dp)        // ✅ NEW: Extra screen padding
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp) // ⬅ space between items
         ) {
-            // ---------------- your original items (UNCHANGED) ----------------
+
             item {
                 SettingItem(
                     icon = rememberVectorPainter(Icons.Filled.Notifications),
