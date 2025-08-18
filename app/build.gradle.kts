@@ -42,6 +42,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.contentpager)
     val room_version = "2.7.2"
 
 
