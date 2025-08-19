@@ -50,6 +50,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.salahsync.ui.Space.UserInputScreen
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.items
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,17 +62,22 @@ class MainActivity : ComponentActivity() {
         setContent {
             val usersState = remember { mutableStateListOf<User>() }
 
-            @Composable
-            fun loadUsers() {
-                LaunchedEffect(Unit) {
-                    usersState.clear()
-                    usersState.addAll(userDao.getAllUsers())
-                }
+            // Load users initially
+            LaunchedEffect(Unit) {
+                usersState.clear()
+                usersState.addAll(userDao.getAllUsers())
             }
 
             Column {
                 UserInputScreen(userDao, this@MainActivity) {
-                    loadUsers() // refresh on save
+                    // Refresh when a new user is saved
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val newUsers = userDao.getAllUsers()
+                        withContext(Dispatchers.Main) {
+                            usersState.clear()
+                            usersState.addAll(newUsers)
+                        }
+                    }
                 }
 
                 LazyColumn {
@@ -83,7 +89,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 
 
 

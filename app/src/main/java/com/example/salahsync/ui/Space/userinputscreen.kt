@@ -13,11 +13,7 @@ import kotlinx.coroutines.launch
 import androidx.activity.ComponentActivity
 
 @Composable
-fun UserInputScreen(
-    userDao: UserDao,
-    activity: ComponentActivity,
-    onSaved: () -> Unit // ❌ remove @Composable
-) {
+fun UserInputScreen(userDao: UserDao, activity: ComponentActivity, onSaved: () -> Unit) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 

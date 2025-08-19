@@ -18,11 +18,18 @@ import androidx.compose.ui.unit.dp
 fun UserListScreen(userDao: UserDao) {
     val users = remember { mutableStateListOf<User>() }
 
-    // Composable ke andar hi
-    LaunchedEffect(Unit) {
-        users.clear()
-        users.addAll(userDao.getAllUsers())
+    // LaunchedEffect ko ek function banake refresh karo
+    @Composable
+    fun loadUsers() {
+        // background me coroutine
+        LaunchedEffect(Unit) {
+            users.clear()
+            users.addAll(userDao.getAllUsers())
+        }
     }
+
+    // Call first time
+    loadUsers()
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text("Users in Database:")
