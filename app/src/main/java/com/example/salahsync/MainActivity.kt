@@ -50,45 +50,31 @@ import androidx.lifecycle.lifecycleScope
 import com.example.salahsync.ui.Space.UserInputScreen
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.items
+import androidx.room.Room
+import com.example.salahsync.ui.Screens.PrayerScreenViewModel
+import com.example.salahsync.ui.Space.AppDatabase
 import kotlinx.coroutines.withContext
 
+@AndroidEntryPoint // if using Hilt (optional)
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val db = DatabaseProvider.getDatabase(this)
-        val userDao = db.userDao()
-
         setContent {
-            val usersState = remember { mutableStateListOf<User>() }
+            val db = Room.databaseBuilder(
+                applicationContext,
+                AppDatabase::class.java,
+                "prayer_db"
+            ).build()
 
-            // Load users initially
-            LaunchedEffect(Unit) {
-                usersState.clear()
-                usersState.addAll(userDao.getAllUsers())
-            }
+            val dao = db.PrayerDao()
+            val viewModel = PrayerScreenViewModel(dao)
 
-            Column {
-                UserInputScreen(userDao, this@MainActivity) {
-                    // Refresh when a new user is saved
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val newUsers = userDao.getAllUsers()
-                        withContext(Dispatchers.Main) {
-                            usersState.clear()
-                            usersState.addAll(newUsers)
-                        }
-                    }
-                }
-
-                LazyColumn {
-                    items(usersState) { user ->
-                        Text(text = "Name: ${user.name}, Pass: ${user.password}")
-                    }
-                }
-            }
+            TopBottom(viewModel) // 👈 pass viewModel to NavHost
         }
     }
 }
+
 
 
 

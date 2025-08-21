@@ -51,9 +51,10 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 // ---------- TopBottom.kt (fixed) ----------
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TopBottom() {
+fun TopBottom(viewModel: PrayerScreenViewModel) { // 👈 ab ViewModel parameter lega
     val bottomNavController = rememberNavController()
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
 
@@ -66,20 +67,16 @@ fun TopBottom() {
                 composable("prayer") {
                     Column {
                         SalahTopBar(selectedDate.value) { selectedDate.value = it }
-                        Box(modifier = Modifier.weight(1f)) { PrayerScreen(selectedDate.value) }
+                        Box(modifier = Modifier.weight(1f)) {
+                            PrayerScreen(selectedDate.value, viewModel) // 👈 pass viewModel here
+                        }
                     }
                 }
 
                 composable("stats") { StatisticsScreen() }
-
-                // Settings entry point with nested nav
-                composable("settings") {
-                    SettingsNavHost()
-                }
+                composable("settings") { SettingsNavHost() }
             }
         }
-
-        // Bottom navigation
         SalahBottomBar(bottomNavController)
     }
 }

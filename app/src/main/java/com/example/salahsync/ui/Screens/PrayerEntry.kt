@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -83,12 +84,12 @@ fun PrayerList(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PrayerScreen(value: LocalDate) {
+fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
 
     var selectedPrayer by remember { mutableStateOf<PrayerTilesData?>(null) }
-    var prayerStatusImages by remember { mutableStateOf<Map<String, Int>>(emptyMap()) } // ✅
+    val prayerStatusImages by viewModel.prayerStatusImages
 
     val prayers = listOf(
         PrayerTilesData("Fajr", R.drawable.ic_fajr),
@@ -97,6 +98,11 @@ fun PrayerScreen(value: LocalDate) {
         PrayerTilesData("Maghrib", R.drawable.ic_maghrib),
         PrayerTilesData("Isha", R.drawable.ic_esha)
     )
+
+    // 🟢 Jab date change ho to record reload ho jaye
+    LaunchedEffect(value) {
+        viewModel.loadPrayers(value)
+    }
 
     Box(
         modifier = Modifier
@@ -129,12 +135,17 @@ fun PrayerScreen(value: LocalDate) {
                         style = MaterialTheme.typography.titleMedium
                     )
 
-                    // Each option sets a different status image
+                    // 🔑 Not Prayed
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                prayerStatusImages = prayerStatusImages + (selectedPrayer!!.name to R.drawable.notprayed)
+                                viewModel.savePrayerStatus(
+                                    selectedPrayer!!.name,
+                                    selectedPrayer!!.iconRes,
+                                    value,
+                                    R.drawable.notprayed
+                                )
                                 coroutineScope.launch { sheetState.hide() }
                             }
                             .padding(vertical = 8.dp),
@@ -145,17 +156,22 @@ fun PrayerScreen(value: LocalDate) {
                             contentDescription = "Not Prayed",
                             modifier = Modifier.size(24.dp),
                             colorFilter = ColorFilter.tint(Color.Black),
-
-                            )
+                        )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(text = "Not Prayed", fontSize = 16.sp)
                     }
 
+                    // 🔑 Prayed Late
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                prayerStatusImages = prayerStatusImages + (selectedPrayer!!.name to R.drawable.prayedlate)
+                                viewModel.savePrayerStatus(
+                                    selectedPrayer!!.name,
+                                    selectedPrayer!!.iconRes,
+                                    value,
+                                    R.drawable.prayedlate
+                                )
                                 coroutineScope.launch { sheetState.hide() }
                             }
                             .padding(vertical = 8.dp),
@@ -166,17 +182,22 @@ fun PrayerScreen(value: LocalDate) {
                             contentDescription = "Prayed Late",
                             modifier = Modifier.size(24.dp),
                             colorFilter = ColorFilter.tint(Color.Red),
-
-                            )
+                        )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(text = "Prayed Late", fontSize = 16.sp)
                     }
 
+                    // 🔑 On Time
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                prayerStatusImages = prayerStatusImages + (selectedPrayer!!.name to R.drawable.prayedontime)
+                                viewModel.savePrayerStatus(
+                                    selectedPrayer!!.name,
+                                    selectedPrayer!!.iconRes,
+                                    value,
+                                    R.drawable.prayedontime
+                                )
                                 coroutineScope.launch { sheetState.hide() }
                             }
                             .padding(vertical = 8.dp),
@@ -192,11 +213,17 @@ fun PrayerScreen(value: LocalDate) {
                         Text(text = "On Time", fontSize = 16.sp)
                     }
 
+                    // 🔑 In Jamaat
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                prayerStatusImages = prayerStatusImages + (selectedPrayer!!.name to R.drawable.jamat)
+                                viewModel.savePrayerStatus(
+                                    selectedPrayer!!.name,
+                                    selectedPrayer!!.iconRes,
+                                    value,
+                                    R.drawable.jamat
+                                )
                                 coroutineScope.launch { sheetState.hide() }
                             }
                             .padding(vertical = 8.dp),
