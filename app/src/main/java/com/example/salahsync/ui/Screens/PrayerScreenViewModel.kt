@@ -5,37 +5,36 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.salahsync.DataBase.PrayerDao
+import com.example.salahsync.DataBase.PrayerEntity
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 class PrayerScreenViewModel(private val dao: PrayerDao) : ViewModel() {
-
-    private val _prayerStatusImages = androidx.compose.runtime.mutableStateOf<Map<String, Int>>(emptyMap())
+    private val _prayerStatusImages = mutableStateOf<Map<String, Int>>(emptyMap())
     val prayerStatusImages: androidx.compose.runtime.State<Map<String, Int>> = _prayerStatusImages
 
     fun loadPrayers(date: LocalDate) {
         viewModelScope.launch {
-            val prayers = dao.getPrayersByDate(date.toString())
-            _prayerStatusImages.value = prayers.associate { it.name to it. }
+            val prayers = dao.getPrayersByDate(date.toString()) // 🛠️ CHANGED: Convert LocalDate to String
+            _prayerStatusImages.value = prayers.associate { it.name to it.statusRes } // 🛠️ CHANGED: Use statusRes instead of iconRes
         }
     }
 
-    fun savePrayerStatus(name: String, iconRes: Int, date: LocalDate, statusRes: Int) {
+    fun savePrayerStatus(name: String, statusRes: Int, date: LocalDate, statusResAgain: Int) { // 🛠️ CHANGED: Renamed iconRes to statusRes for clarity
         viewModelScope.launch {
             dao.insertPrayer(
-                Prayer(
+                PrayerEntity(
                     name = name,
-                    iconRes = iconRes,
+                    iconRes = statusRes, // 🛠️ CHANGED: Use statusRes for iconRes in PrayerEntity
                     date = date.toString(),
-                    statusRes = statusRes
+                    statusRes = statusResAgain
                 )
             )
-            _prayerStatusImages.value = _prayerStatusImages.value + (name to statusRes)
+            _prayerStatusImages.value = _prayerStatusImages.value + (name to statusResAgain)
         }
     }
 }
 
-// ✅ Factory (for MainActivity injection)
 class PrayerViewModelFactory(private val dao: PrayerDao) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(PrayerScreenViewModel::class.java)) {

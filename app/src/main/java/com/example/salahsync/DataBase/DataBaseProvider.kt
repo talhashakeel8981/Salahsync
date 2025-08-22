@@ -2,8 +2,7 @@ package com.example.salahsync.DataBase
 
 import android.content.Context
 import androidx.room.Room
-import com.example.salahsync.ui.Space.AppDatabase
-
+import com.example.salahsync.DataBase.AppDatabase
 object DataBaseProvider {
 
 

@@ -28,11 +28,12 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 
-//  Composable to show the list of 5 prayers
+
+
 @Composable
 fun PrayerList(
     prayers: List<PrayerTilesData>,
-    prayerStatusImages: Map<String, Int>, //  store status images
+    prayerStatusImages: Map<String, Int>,
     onPrayerClick: (PrayerTilesData) -> Unit
 ) {
     LazyColumn {
@@ -52,24 +53,18 @@ fun PrayerList(
                         .padding(vertical = 12.dp, horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Prayer name icon (left side fixed)
                     Image(
                         painter = painterResource(id = prayer.iconRes),
                         contentDescription = prayer.name,
-                        colorFilter = ColorFilter.tint(Color(0,122,255)),
+                        colorFilter = ColorFilter.tint(Color(0, 122, 255)),
                         modifier = Modifier.size(60.dp)
-
                     )
-
                     Spacer(modifier = Modifier.width(12.dp))
-
                     Text(
                         text = prayer.name,
                         modifier = Modifier.weight(1f),
                         fontSize = 20.sp
                     )
-
-                    //  Right side: Status image or placeholder
                     val statusIcon = prayerStatusImages[prayer.name] ?: R.drawable.ic_launcher_background
                     Image(
                         painter = painterResource(id = statusIcon),
@@ -87,10 +82,8 @@ fun PrayerList(
 fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
-
     var selectedPrayer by remember { mutableStateOf<PrayerTilesData?>(null) }
     val prayerStatusImages by viewModel.prayerStatusImages
-
     val prayers = listOf(
         PrayerTilesData("Fajr", R.drawable.ic_fajr),
         PrayerTilesData("Dhuhr", R.drawable.ic_dhuhur),
@@ -99,7 +92,6 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
         PrayerTilesData("Isha", R.drawable.ic_esha)
     )
 
-    // 🟢 Jab date change ho to record reload ho jaye
     LaunchedEffect(value) {
         viewModel.loadPrayers(value)
     }
@@ -120,7 +112,9 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
 
         if (sheetState.isVisible && selectedPrayer != null) {
             ModalBottomSheet(
-                onDismissRequest = { coroutineScope.launch { sheetState.hide() } },
+                onDismissRequest = {
+                    coroutineScope.launch { sheetState.hide() }
+                },
                 sheetState = sheetState
             ) {
                 Column(
@@ -134,15 +128,14 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                         text = "How did you complete ${selectedPrayer?.name} today?",
                         style = MaterialTheme.typography.titleMedium
                     )
-
-                    // 🔑 Not Prayed
+                    // Not Prayed
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
                                 viewModel.savePrayerStatus(
                                     selectedPrayer!!.name,
-                                    selectedPrayer!!.iconRes,
+                                    R.drawable.notprayed,
                                     value,
                                     R.drawable.notprayed
                                 )
@@ -155,20 +148,19 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                             painter = painterResource(id = R.drawable.notprayed),
                             contentDescription = "Not Prayed",
                             modifier = Modifier.size(24.dp),
-                            colorFilter = ColorFilter.tint(Color.Black),
+                            colorFilter = ColorFilter.tint(Color.Black)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(text = "Not Prayed", fontSize = 16.sp)
                     }
-
-                    // 🔑 Prayed Late
+                    // Prayed Late
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
                                 viewModel.savePrayerStatus(
                                     selectedPrayer!!.name,
-                                    selectedPrayer!!.iconRes,
+                                    R.drawable.prayedlate,
                                     value,
                                     R.drawable.prayedlate
                                 )
@@ -181,20 +173,19 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                             painter = painterResource(id = R.drawable.prayedlate),
                             contentDescription = "Prayed Late",
                             modifier = Modifier.size(24.dp),
-                            colorFilter = ColorFilter.tint(Color.Red),
+                            colorFilter = ColorFilter.tint(Color.Red)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(text = "Prayed Late", fontSize = 16.sp)
                     }
-
-                    // 🔑 On Time
+                    // On Time
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
                                 viewModel.savePrayerStatus(
                                     selectedPrayer!!.name,
-                                    selectedPrayer!!.iconRes,
+                                    R.drawable.prayedontime,
                                     value,
                                     R.drawable.prayedontime
                                 )
@@ -212,15 +203,14 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(text = "On Time", fontSize = 16.sp)
                     }
-
-                    // 🔑 In Jamaat
+                    // In Jamaat
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
                                 viewModel.savePrayerStatus(
                                     selectedPrayer!!.name,
-                                    selectedPrayer!!.iconRes,
+                                    R.drawable.jamat,
                                     value,
                                     R.drawable.jamat
                                 )
@@ -243,7 +233,6 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
         }
     }
 }
-
 
 //@Preview(showSystemUi = true)
 //@Composable

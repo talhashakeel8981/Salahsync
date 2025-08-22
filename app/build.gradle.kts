@@ -43,6 +43,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.contentpager)
+    implementation(libs.androidx.appcompat)
     val room_version = "2.7.2"
 
 
@@ -62,7 +63,7 @@ dependencies {
     implementation(libs.androidx.benchmark.traceprocessor.android)
     implementation(libs.androidx.navigation.compose.android)
     implementation(libs.androidx.foundation.layout.android)
-    implementation(libs.androidx.room.common.jvm)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
