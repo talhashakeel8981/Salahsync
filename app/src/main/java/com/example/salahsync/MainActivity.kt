@@ -10,6 +10,7 @@ import androidx.room.Room
 import com.example.salahsync.DataBase.AppDatabase
 import com.example.salahsync.ui.Screens.PrayerScreenViewModel
 import com.example.salahsync.ui.Screens.PrayerViewModelFactory
+import com.example.salahsync.ui.Screens.SettingsOptions.NotificationScreen
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -30,3 +31,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+
+
