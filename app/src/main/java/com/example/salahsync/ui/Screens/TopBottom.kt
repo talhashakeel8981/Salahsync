@@ -209,12 +209,16 @@ fun SalahBottomBar(navController: NavController) {
         NavigationBarItem(
             icon = { Icon(painterResource(id = R.drawable.stats), contentDescription = "stats", modifier = Modifier.size(20.dp)) },
             selected = false,
-            onClick = { navController.navigate("stats") }
+            onClick = { navController.navigate("stats") },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = Color(0xFF9EA3A9))
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
             selected = false,
-            onClick = { navController.navigate("settings") }
+            onClick = { navController.navigate("settings") },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = Color(0xFF9EA3A9))
         )
     }
 }
