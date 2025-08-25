@@ -1,6 +1,7 @@
 package com.example.salahsync.ui.Screens.Setting
 
 //import androidx.compose.foundation.R
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,13 +36,14 @@ import com.example.salahsync.R
 import androidx.compose.material.*
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(
     onNotificationsClick: () -> Unit,
     onManageDeedsClick: () -> Unit,
-    appearence: () -> Unit, // ✅ must match
+    appearence:()->Unit,
     onHapticClick: () -> Unit,
     onPrivacyPolicyClick: () -> Unit,
     feedback:()->Unit,
@@ -51,6 +53,8 @@ fun SettingScreen(
     databackup:()-> Unit,
     rateus:()-> Unit
 ) {
+
+    val contextkiinvite = LocalContext.current
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -94,7 +98,15 @@ fun SettingScreen(
                 SettingItem(
                     icon = painterResource(R.drawable.invite),
                     title = "Invite Friends",
-                    onClick = invite
+                    onClick = {
+                        // Trigger share sheet
+                        val shareIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, "Join me on SalahSync! Track your prayers and stay connected. Download now: [Your App Link]")
+                            type = "text/plain"
+                        }
+                        contextkiinvite.startActivity(Intent.createChooser(shareIntent, "Invite Friends via"))
+                    }
                 )
             }
             item{ SettingItem(

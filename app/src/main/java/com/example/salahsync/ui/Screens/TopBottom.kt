@@ -35,21 +35,37 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.*
 
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.navigation.currentBackStackEntryAsState
 import com.example.salahsync.ui.Screens.Setting.StatisticsScreen
-import com.example.salahsync.ui.Screens.SettingsOptions.AppearenceScreen
+
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.rememberCoroutineScope
+
+import kotlinx.coroutines.launch
+import com.example.salahsync.ui.Screens.SettingsOptions.AppearanceScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.HepticFeedBackScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.ManageDeedsScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.NotificationScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.PrivacyPolicyScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 // ---------- TopBottom.kt (fixed) ----------
 
@@ -73,8 +89,9 @@ fun TopBottom(viewModel: PrayerScreenViewModel) {
                         }
                     }
                 }
+
                 composable("stats") { StatisticsScreen() }
-                composable("settings") { SettingsNavHost(viewModel = viewModel) }
+                composable("settings") { SettingsNavHost() }
             }
         }
         SalahBottomBar(bottomNavController)
@@ -100,7 +117,7 @@ fun SalahTopBar(
             fontSize = 18.sp
         )
         Text(
-            text = getHijriDate(selectedDate),
+            text = getHijriDate(selectedDate), // Placeholder
             color = Color.Black,
             fontSize = 14.sp
         )
@@ -112,11 +129,15 @@ fun SalahTopBar(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun getHijriDate(date: LocalDate): String {
-    // Implement actual Hijri conversion logic here
-    return "18 Safar 1447" // Placeholder
-}
+    // Convert LocalDate to HijrahDate (Islamic Umm Al-Qura calendar)
+    val hijrahDate = HijrahDate.from(date)
 
+    // Format the Hijri date (e.g., "2 Rabi‘ al-awwal 1447")
+    val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("en"))
+    return hijrahDate.format(formatter)
+}
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DateSlider(
@@ -124,128 +145,160 @@ fun DateSlider(
     onDateSelected: (LocalDate) -> Unit
 ) {
     val today = LocalDate.now()
-    val totalPastDays = 100
-    val maxFutureDays = 3
+    val totalPastDays = 50000 // Days backward allowed
+    val maxFutureDays = 4      // Days forward allowed
+    val lazyListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
-    LazyRow(
+    // Ensure the LazyRow scrolls to the selected date on initial load
+    LaunchedEffect(selectedDate) {
+        val index = (totalPastDays + selectedDate.toEpochDay() - today.toEpochDay()).toInt()
+        if (index in 0 until (totalPastDays + maxFutureDays + 1)) {
+            lazyListState.scrollToItem(index)
+        }
+    }
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        items(totalPastDays + maxFutureDays + 1) { listIndex ->
-            val dayOffsetFromStart = listIndex.toLong()
-            val currentDate = today.minusDays(totalPastDays.toLong()).plusDays(dayOffsetFromStart)
+        // Left arrow button
+        IconButton(
+            onClick = {
+                val currentIndex = lazyListState.firstVisibleItemIndex
+                val visibleItemsCount = lazyListState.layoutInfo.visibleItemsInfo.size
+                if (currentIndex > 0) {
+                    coroutineScope.launch {
+                        // Scroll to the previous row
+                        val newIndex = maxOf(0, currentIndex - visibleItemsCount)
+                        lazyListState.animateScrollToItem(newIndex)
+                        // Update selected date to the first visible date in the new row
+                        val newDate = today.minusDays(totalPastDays.toLong()).plusDays(newIndex.toLong())
+                        if (!newDate.isAfter(today.plusDays(maxFutureDays.toLong()))) {
+                            onDateSelected(newDate)
+                        }
+                    }
+                }
+            },
+            enabled = lazyListState.canScrollBackward
+        ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Previous Row",
+                tint = if (lazyListState.canScrollBackward) Color.Black else Color.Gray
+            )
+        }
 
-            if (!currentDate.isAfter(today.plusDays(maxFutureDays.toLong()))) {
-                val isSelected = currentDate == selectedDate
-                Column(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(if (isSelected) Color(0, 122, 255) else Color.White)
-                        .clickable { onDateSelected(currentDate) }
-                        .padding(vertical = 8.dp, horizontal = 12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = currentDate.dayOfWeek.name.take(3),
-                        fontSize = 15.sp,
-                        color = if (isSelected) Color.White else Color(176, 176, 179)
-                    )
-                    Text(
-                        text = currentDate.dayOfMonth.toString(),
-                        fontSize = 15.sp,
-                        color = if (isSelected) Color.White else Color.Black
-                    )
+        // LazyRow for dates
+        LazyRow(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 8.dp),
+            state = lazyListState,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(totalPastDays + maxFutureDays + 1) { listIndex ->
+                val dayOffsetFromStart = listIndex.toLong()
+                val currentDate = today.minusDays(totalPastDays.toLong()).plusDays(dayOffsetFromStart)
+
+                // Only show dates up to maxFutureDays in the future
+                if (!currentDate.isAfter(today.plusDays(maxFutureDays.toLong()))) {
+                    val isSelected = currentDate == selectedDate
+                    Column(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isSelected) Color(0, 122, 255) else Color(255, 255, 255))
+                            .clickable { onDateSelected(currentDate) }
+                            .padding(vertical = 8.dp, horizontal = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = currentDate.dayOfWeek.name.take(3),
+                            fontSize = 15.sp,
+                            color = if (isSelected) Color.White else Color(176, 176, 179)
+                        )
+                        Text(
+                            text = currentDate.dayOfMonth.toString(),
+                            fontSize = 15.sp,
+                            color = if (isSelected) Color.White else Color.Black
+                        )
+                    }
                 }
             }
         }
+
+        // Right arrow button
+        IconButton(
+            onClick = {
+                val currentIndex = lazyListState.firstVisibleItemIndex
+                val visibleItemsCount = lazyListState.layoutInfo.visibleItemsInfo.size
+                val totalItems = lazyListState.layoutInfo.totalItemsCount
+                if (currentIndex < totalItems - 1) {
+                    coroutineScope.launch {
+                        // Scroll to the next row
+                        val newIndex = minOf(currentIndex + visibleItemsCount, totalItems - 1)
+                        lazyListState.animateScrollToItem(newIndex)
+                        // Update selected date to the first visible date in the new row
+                        val newDate = today.minusDays(totalPastDays.toLong()).plusDays(newIndex.toLong())
+                        if (!newDate.isAfter(today.plusDays(maxFutureDays.toLong()))) {
+                            onDateSelected(newDate)
+                        }
+                    }
+                }
+            },
+            enabled = lazyListState.canScrollForward
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Next Row",
+                tint = if (lazyListState.canScrollForward) Color.Black else Color.Gray
+            )
+        }
     }
 }
-
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatDateLabel(date: LocalDate): String {
     val today = LocalDate.now()
     val yesterday = today.minusDays(1)
+    val tomorrow=today.plusDays(1)
 
     return when (date) {
         today -> "Today, ${date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))}"
         yesterday -> "Yesterday, ${date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))}"
+        tomorrow -> "Tomorrow, ${date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))}"
         else -> date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
     }
 }
 
 @Composable
 fun SalahBottomBar(navController: NavController) {
-    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-
     NavigationBar(
         containerColor = Color.White
     ) {
         NavigationBarItem(
-            icon = {
-                Icon(
-                    painterResource(id = R.drawable.home),
-                    contentDescription = "Home",
-                    modifier = Modifier.size(20.dp)
-                )
-            },
-            selected = currentRoute == "prayer",
-            onClick = {
-                if (currentRoute != "prayer") {
-                    navController.navigate("prayer") {
-                        popUpTo(navController.graph.startDestinationId)
-                        launchSingleTop = true
-                    }
-                }
-            },
+            icon = { Icon(painterResource(id = R.drawable.home), contentDescription = "Home", modifier = Modifier.size(20.dp)) },
+            selected = false,
+            onClick = { navController.navigate("prayer") },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0, 122, 255),
-                unselectedIconColor = Color(0xFF9EA3A9)
+                selectedIconColor = Color(0xFF9EA3A9)
             )
         )
         NavigationBarItem(
-            icon = {
-                Icon(
-                    painterResource(id = R.drawable.stats),
-                    contentDescription = "Stats",
-                    modifier = Modifier.size(20.dp)
-                )
-            },
-            selected = currentRoute == "stats",
-            onClick = {
-                if (currentRoute != "stats") {
-                    navController.navigate("stats") {
-                        popUpTo(navController.graph.startDestinationId)
-                        launchSingleTop = true
-                    }
-                }
-            },
+            icon = { Icon(painterResource(id = R.drawable.stats), contentDescription = "stats", modifier = Modifier.size(20.dp)) },
+            selected = false,
+            onClick = { navController.navigate("stats") },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0, 122, 255),
-                unselectedIconColor = Color(0xFF9EA3A9)
+                selectedIconColor = Color(0xFF9EA3A9)
             )
         )
         NavigationBarItem(
-            icon = {
-                Icon(
-                    Icons.Default.Settings,
-                    contentDescription = "Settings",
-                    modifier = Modifier.size(20.dp)
-                )
-            },
-            selected = currentRoute == "settings",
-            onClick = {
-                if (currentRoute != "settings") {
-                    navController.navigate("settings") {
-                        popUpTo(navController.graph.startDestinationId)
-                        launchSingleTop = true
-                    }
-                }
-            },
+            icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+            selected = false,
+            onClick = { navController.navigate("settings") },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0, 122, 255),
-                unselectedIconColor = Color(0xFF9EA3A9)
+                selectedIconColor = Color(0xFF9EA3A9)
             )
         )
     }
@@ -260,3 +313,4 @@ fun SalahTopBarPreview() {
         onDateSelected = { /* No-op for preview */ }
     )
 }
+
