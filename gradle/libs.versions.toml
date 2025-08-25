@@ -15,6 +15,7 @@ foundationLayoutAndroid = "1.7.2"
 roomCommonJvm = "2.7.2"
 contentpager = "1.0.0"
 appcompat = "1.7.1"
+composeNavigation = "1.4.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -38,6 +39,7 @@ androidx-foundation-layout-android = { group = "androidx.compose.foundation", na
 androidx-room-common-jvm = { group = "androidx.room", name = "room-common-jvm", version.ref = "roomCommonJvm" }
 androidx-contentpager = { group = "androidx.contentpager", name = "contentpager", version.ref = "contentpager" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-compose-navigation = { group = "androidx.wear.compose", name = "compose-navigation", version.ref = "composeNavigation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

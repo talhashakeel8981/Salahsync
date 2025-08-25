@@ -40,6 +40,7 @@ import androidx.compose.runtime.*
 
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
+import androidx.wear.compose.navigation.currentBackStackEntryAsState
 import com.example.salahsync.ui.Screens.Setting.StatisticsScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.AppearenceScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.HepticFeedBackScreen
@@ -54,7 +55,7 @@ import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TopBottom(viewModel: PrayerScreenViewModel) { // 👈 ab ViewModel parameter lega
+fun TopBottom(viewModel: PrayerScreenViewModel) {
     val bottomNavController = rememberNavController()
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
 
@@ -68,20 +69,17 @@ fun TopBottom(viewModel: PrayerScreenViewModel) { // 👈 ab ViewModel parameter
                     Column {
                         SalahTopBar(selectedDate.value) { selectedDate.value = it }
                         Box(modifier = Modifier.weight(1f)) {
-                            PrayerScreen(selectedDate.value, viewModel) // 👈 pass viewModel here
+                            PrayerScreen(selectedDate.value, viewModel)
                         }
                     }
                 }
-
                 composable("stats") { StatisticsScreen() }
-                composable("settings") { SettingsNavHost() }
+                composable("settings") { SettingsNavHost(viewModel = viewModel) }
             }
         }
         SalahBottomBar(bottomNavController)
     }
 }
-
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -96,15 +94,13 @@ fun SalahTopBar(
             .padding(8.dp, top = 33.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-
         Text(
             text = formatDateLabel(selectedDate),
             color = Color.Black,
             fontSize = 18.sp
         )
         Text(
-            text = getHijriDate(selectedDate), // Placeholder
+            text = getHijriDate(selectedDate),
             color = Color.Black,
             fontSize = 14.sp
         )
@@ -115,11 +111,12 @@ fun SalahTopBar(
         )
     }
 }
-// ✅ Placeholder for Hijri date
+
 fun getHijriDate(date: LocalDate): String {
-    // Implement Hijri conversion here
-    return "18 Safar 1447" // Example static value
+    // Implement actual Hijri conversion logic here
+    return "18 Safar 1447" // Placeholder
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DateSlider(
@@ -127,42 +124,33 @@ fun DateSlider(
     onDateSelected: (LocalDate) -> Unit
 ) {
     val today = LocalDate.now()
-
-    val totalPastDays = 100    // Days backward allowed
-    val maxFutureDays = 3      // Days forward allowed
+    val totalPastDays = 100
+    val maxFutureDays = 3
 
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-//            .background(Color(0xFF170000))
-        ,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        // ↓ REMOVED reverseLayout = true to start from left side
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(totalPastDays + maxFutureDays + 1) { listIndex ->
-
-            // ↓ Changed calculation so index 0 = oldest date (today - totalPastDays)
             val dayOffsetFromStart = listIndex.toLong()
             val currentDate = today.minusDays(totalPastDays.toLong()).plusDays(dayOffsetFromStart)
 
-            // Only show dates up to maxFutureDays in the future
             if (!currentDate.isAfter(today.plusDays(maxFutureDays.toLong()))) {
                 val isSelected = currentDate == selectedDate
-//Column for Top Bar Date
                 Column(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(if (isSelected) Color(0,122,255) else Color(255,255,255))
+                        .background(if (isSelected) Color(0, 122, 255) else Color.White)
                         .clickable { onDateSelected(currentDate) }
                         .padding(vertical = 8.dp, horizontal = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Text(
                         text = currentDate.dayOfWeek.name.take(3),
                         fontSize = 15.sp,
-                        color = if (isSelected) Color.White else Color(176,176,179)
+                        color = if (isSelected) Color.White else Color(176, 176, 179)
                     )
                     Text(
                         text = currentDate.dayOfMonth.toString(),
@@ -175,9 +163,6 @@ fun DateSlider(
     }
 }
 
-
-
-// Helper function for date label
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatDateLabel(date: LocalDate): String {
     val today = LocalDate.now()
@@ -190,49 +175,88 @@ fun formatDateLabel(date: LocalDate): String {
     }
 }
 
-
-
-
-
 @Composable
 fun SalahBottomBar(navController: NavController) {
+    val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+
     NavigationBar(
-        containerColor = Color.White   // <-- sets white background correctly
+        containerColor = Color.White
     ) {
         NavigationBarItem(
-            icon = { Icon(painterResource(id = R.drawable.home), contentDescription = "Home", modifier = Modifier.size(20.dp)) },
-            selected = false,
-            onClick = { navController.navigate("prayer") },
+            icon = {
+                Icon(
+                    painterResource(id = R.drawable.home),
+                    contentDescription = "Home",
+                    modifier = Modifier.size(20.dp)
+                )
+            },
+            selected = currentRoute == "prayer",
+            onClick = {
+                if (currentRoute != "prayer") {
+                    navController.navigate("prayer") {
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                }
+            },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF9EA3A9))
+                selectedIconColor = Color(0, 122, 255),
+                unselectedIconColor = Color(0xFF9EA3A9)
+            )
         )
         NavigationBarItem(
-            icon = { Icon(painterResource(id = R.drawable.stats), contentDescription = "stats", modifier = Modifier.size(20.dp)) },
-            selected = false,
-            onClick = { navController.navigate("stats") },
+            icon = {
+                Icon(
+                    painterResource(id = R.drawable.stats),
+                    contentDescription = "Stats",
+                    modifier = Modifier.size(20.dp)
+                )
+            },
+            selected = currentRoute == "stats",
+            onClick = {
+                if (currentRoute != "stats") {
+                    navController.navigate("stats") {
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                }
+            },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF9EA3A9))
+                selectedIconColor = Color(0, 122, 255),
+                unselectedIconColor = Color(0xFF9EA3A9)
+            )
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-            selected = false,
-            onClick = { navController.navigate("settings") },
+            icon = {
+                Icon(
+                    Icons.Default.Settings,
+                    contentDescription = "Settings",
+                    modifier = Modifier.size(20.dp)
+                )
+            },
+            selected = currentRoute == "settings",
+            onClick = {
+                if (currentRoute != "settings") {
+                    navController.navigate("settings") {
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                }
+            },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF9EA3A9))
+                selectedIconColor = Color(0, 122, 255),
+                unselectedIconColor = Color(0xFF9EA3A9)
+            )
         )
     }
 }
 
-
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview
-fun SalahTopBarPreview()
-{
+fun SalahTopBarPreview() {
     SalahTopBar(
-        selectedDate = LocalDate.now(), // August 12, 2025
+        selectedDate = LocalDate.now(),
         onDateSelected = { /* No-op for preview */ }
     )
 }
-

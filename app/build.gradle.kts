@@ -12,11 +12,10 @@ android {
 
     defaultConfig {
         applicationId = "com.example.salahsync"
-        minSdk = 24
+        minSdk = 25 // Changed from 24 to 25
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -44,6 +43,10 @@ android {
 dependencies {
     implementation(libs.androidx.contentpager)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.compose.navigation)
     val room_version = "2.7.2"
 
 

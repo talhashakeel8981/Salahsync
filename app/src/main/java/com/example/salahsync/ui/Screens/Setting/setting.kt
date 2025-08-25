@@ -41,7 +41,7 @@ import androidx.compose.material3.TopAppBarDefaults
 fun SettingScreen(
     onNotificationsClick: () -> Unit,
     onManageDeedsClick: () -> Unit,
-    appearence:()->Unit,
+    appearence: () -> Unit, // ✅ must match
     onHapticClick: () -> Unit,
     onPrivacyPolicyClick: () -> Unit,
     feedback:()->Unit,
