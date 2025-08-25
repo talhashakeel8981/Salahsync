@@ -13,7 +13,7 @@ import com.example.salahsync.DataBase.AppDatabase
 import com.example.salahsync.ui.Screens.PrayerScreenViewModel
 import com.example.salahsync.ui.Screens.PrayerViewModelFactory
 import com.example.salahsync.ui.Screens.Setting.Appearence.AppTheme
-import com.example.salahsync.ui.Screens.Setting.Appearence.AppearenceNavigation
+//import com.example.salahsync.ui.Screens.Setting.Appearence.
 import com.example.salahsync.ui.Screens.Setting.Appearence.ThemeControl
 import com.example.salahsync.ui.Screens.SettingsOptions.NotificationScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
