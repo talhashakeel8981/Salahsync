@@ -4,6 +4,7 @@ package com.example.salahsync.ui.Screens
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowBack
@@ -160,8 +162,7 @@ fun DateSlider(
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Left arrow button
@@ -182,22 +183,31 @@ fun DateSlider(
                     }
                 }
             },
-            enabled = lazyListState.canScrollBackward
+            enabled = lazyListState.canScrollBackward,
+            modifier = Modifier.size(32.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Previous Row",
-                tint = if (lazyListState.canScrollBackward) Color.Black else Color.Gray
-            )
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(color = Color(0, 122, 255), shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.previous),
+                    contentDescription = "Previous Row",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
 
         // LazyRow for dates
         LazyRow(
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = 4.dp),
             state = lazyListState,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             items(totalPastDays + maxFutureDays + 1) { listIndex ->
                 val dayOffsetFromStart = listIndex.toLong()
@@ -206,23 +216,46 @@ fun DateSlider(
                 // Only show dates up to maxFutureDays in the future
                 if (!currentDate.isAfter(today.plusDays(maxFutureDays.toLong()))) {
                     val isSelected = currentDate == selectedDate
+                    val isToday = currentDate == today
                     Column(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (isSelected) Color(0, 122, 255) else Color(255, 255, 255))
+                            .clip(
+                                when {
+                                    isSelected || isToday -> CircleShape // Circular shape for selected and today
+                                    else -> RoundedCornerShape(12.dp) // Rounded for others
+                                }
+                            )
+                            .background(
+                                when {
+                                    isSelected -> Color(0, 122, 255) // Filled blue for selected
+                                    isToday -> Color.Transparent // Transparent for today (only border)
+                                    else -> Color(255, 255, 255) // White for others
+                                }
+                            )
+                            .then(
+                                if (isToday && !isSelected) {
+                                    Modifier.border(
+                                        width = 2.dp,
+                                        color = Color(0, 122, 255),
+                                        shape = CircleShape
+                                    )
+                                } else {
+                                    Modifier
+                                }
+                            )
                             .clickable { onDateSelected(currentDate) }
-                            .padding(vertical = 8.dp, horizontal = 12.dp),
+                            .padding(vertical = 8.dp, horizontal = 6.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             text = currentDate.dayOfWeek.name.take(3),
-                            fontSize = 15.sp,
-                            color = if (isSelected) Color.White else Color(176, 176, 179)
+                            fontSize = 9.sp,
+                            color = if (isSelected || isToday) Color.White else Color(176, 176, 179)
                         )
                         Text(
                             text = currentDate.dayOfMonth.toString(),
-                            fontSize = 15.sp,
-                            color = if (isSelected) Color.White else Color.Black
+                            fontSize = 9.sp,
+                            color = if (isSelected || isToday) Color.White else Color.Black
                         )
                     }
                 }
@@ -248,13 +281,22 @@ fun DateSlider(
                     }
                 }
             },
-            enabled = lazyListState.canScrollForward
+            enabled = lazyListState.canScrollForward,
+            modifier = Modifier.size(32.dp)
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = "Next Row",
-                tint = if (lazyListState.canScrollForward) Color.Black else Color.Gray
-            )
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(color = Color(0, 122, 255), shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.next),
+                    contentDescription = "Next Row",
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }
