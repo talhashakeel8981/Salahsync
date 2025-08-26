@@ -1,9 +1,13 @@
 package com.example.salahsync.ui.Screens
+import android.R.attr.contentDescription
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -26,10 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.example.salahsync.R
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-
-
-
-
+import androidx.compose.foundation.lazy.grid.items // CHANGED: Explicitly import the correct 'items' for LazyVerticalGrid
 @Composable
 fun PrayerList(
     prayers: List<PrayerTilesData>,
@@ -99,7 +100,7 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 80.dp)
+            .padding(top = 10.dp)
             .background(Color(243, 245, 248))
     ) {
         PrayerList(
@@ -122,12 +123,31 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                         .fillMaxWidth()
                         .fillMaxHeight(0.8f)
                         .padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Top icon of selected prayer
+                    Image(
+                        painter = painterResource(id = selectedPrayer!!.iconRes),
+                        contentDescription = selectedPrayer!!.name,
+                        modifier = Modifier.size(64.dp),
+                        colorFilter = ColorFilter.tint(Color(0, 122, 255))
+                    )
+
                     Text(
                         text = "How did you complete ${selectedPrayer?.name} today?",
                         style = MaterialTheme.typography.titleMedium
                     )
+
+                    // ✅ Grid of options
+                    PrayerStatusGrid(
+                        selectedPrayer = selectedPrayer!!,
+                        value = value,
+                        viewModel = viewModel,
+                        onClose = { coroutineScope.launch { sheetState.hide() } } // CHANGED: Updated onClose to use coroutineScope
+                    )
+                    // CHANGED: Moved the prayer status options (Not Prayed, Prayed Late, etc.) inside ModalBottomSheet
+                    // CHANGED: These were previously outside the ModalBottomSheet and causing structural errors
                     // Not Prayed
                     Row(
                         modifier = Modifier
@@ -229,6 +249,62 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                         Text(text = "In Jamaat", fontSize = 16.sp)
                     }
                 }
+            }
+        }
+        // CHANGED: Removed the misplaced Row blocks that were outside ModalBottomSheet
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun PrayerStatusGrid(
+    selectedPrayer: PrayerTilesData,
+    value: LocalDate,
+    viewModel: PrayerScreenViewModel,
+    onClose: () -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+
+    val options = listOf(
+        Triple("Not Prayed", R.drawable.notprayed, Color.Black),
+        Triple("Prayed Late", R.drawable.prayedlate, Color.Red),
+        Triple("On Time", R.drawable.prayedontime, Color.Yellow),
+        Triple("In Jamaat", R.drawable.jamat, Color.Green)
+    )
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2), // 2 columns → table format
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        items(options) { (title, icon, tint) ->
+            Column(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(245, 245, 245))
+                    .clickable {
+                        viewModel.savePrayerStatus(
+                            selectedPrayer.name,
+                            icon,
+                            value,
+                            icon
+                        )
+                        coroutineScope.launch { onClose() }
+                    }
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(id = icon),
+                    contentDescription = title,
+                    modifier = Modifier.size(40.dp),
+                    colorFilter = ColorFilter.tint(tint)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = title, fontSize = 14.sp)
             }
         }
     }

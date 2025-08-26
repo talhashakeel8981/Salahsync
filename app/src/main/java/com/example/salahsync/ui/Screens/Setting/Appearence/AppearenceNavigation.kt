@@ -19,7 +19,7 @@ import androidx.navigation.compose.composable
 import com.example.salahsync.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppearanceScreen(onBack: () -> Unit) {
+fun AppearanceNavigation(onBack: () -> Unit) {
     // State to track selected theme
     val themeOptions = listOf("System", "Light", "Dark")
     var selectedTheme by remember { mutableStateOf("System") }
