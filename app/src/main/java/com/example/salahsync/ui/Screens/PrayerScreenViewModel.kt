@@ -14,10 +14,15 @@ import androidx.compose.runtime.State
 class PrayerScreenViewModel(private val dao: PrayerDao) : ViewModel() {
     private val _prayedCount = mutableStateOf(0)
     val prayedCount: State<Int> = _prayedCount
+
     private val _notPrayedCount = mutableStateOf(0)
     val notPrayedCount: State<Int> = _notPrayedCount
+
     private val _onTimeCount = mutableStateOf(0)
     val onTimeCount: State<Int> = _onTimeCount
+
+    private val _jamatCount=mutableStateOf(0)
+    val jamatCount: State<Int> = _jamatCount
 
     private val _prayerStatusImages = mutableStateOf<Map<String, Int>>(emptyMap())
     val prayerStatusImages: State<Map<String, Int>> = _prayerStatusImages
@@ -50,6 +55,7 @@ class PrayerScreenViewModel(private val dao: PrayerDao) : ViewModel() {
             _prayedCount.value = dao.getTotalStatusCount(R.drawable.prayedontime)
             _notPrayedCount.value = dao.getTotalStatusCount(R.drawable.notprayed)
             _onTimeCount.value = dao.getTotalStatusCount(R.drawable.prayedontime)
+            _jamatCount.value=dao.getTotalStatusCount(R.drawable.jamat)
         }
     }
 }

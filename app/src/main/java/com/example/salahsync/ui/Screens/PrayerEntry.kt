@@ -1,5 +1,6 @@
 package com.example.salahsync.ui.Screens
 import android.R.attr.contentDescription
+import android.graphics.Color.rgb
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,6 +32,11 @@ import com.example.salahsync.R
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import androidx.compose.foundation.lazy.grid.items // CHANGED: Explicitly import the correct 'items' for LazyVerticalGrid
+import androidx.compose.ui.layout.ContentScale
+
+private val PrimaryBlue = Color(0xFF007AFF) // Replaces Color(0, 122, 255)
+private val BackgroundLightGray = Color(0xFFF3F5F8) // Replaces Color(243, 245, 248)
+private val CardBackgroundGray = Color(0xFFF5F5F5) // Replaces Color(245, 245, 245)
 @Composable
 fun PrayerList(
     prayers: List<PrayerTilesData>,
@@ -57,8 +63,9 @@ fun PrayerList(
                     Image(
                         painter = painterResource(id = prayer.iconRes),
                         contentDescription = prayer.name,
-                        colorFilter = ColorFilter.tint(Color(0, 122, 255)),
-                        modifier = Modifier.size(60.dp)
+                        colorFilter = ColorFilter.tint(PrimaryBlue), // CHANGED: Line 52 - Replaced Color(0, 122, 255) with PrimaryBlue for consistency
+                        modifier = Modifier.size(60.dp),
+                        contentScale = ContentScale.Fit // ADDED: Line 54 - Added contentScale to ensure proper image rendering and tint application
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
@@ -70,7 +77,9 @@ fun PrayerList(
                     Image(
                         painter = painterResource(id = statusIcon),
                         contentDescription = "Prayer Status",
+                        contentScale = ContentScale.Fit, // ADDED: Line 63 - Added contentScale to ensure proper image rendering
                         modifier = Modifier.size(32.dp)
+
                     )
                 }
             }
@@ -101,7 +110,7 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 10.dp)
-            .background(Color(243, 245, 248))
+            .background(BackgroundLightGray)
     ) {
         PrayerList(
             prayers,
@@ -131,7 +140,8 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                         painter = painterResource(id = selectedPrayer!!.iconRes),
                         contentDescription = selectedPrayer!!.name,
                         modifier = Modifier.size(64.dp),
-                        colorFilter = ColorFilter.tint(Color(0, 122, 255))
+                        colorFilter = ColorFilter.tint(Color(0, 122, 255)),
+                        contentScale = ContentScale.Fit // ADDED: Line 162 - Added contentScale for proper rendering
                     )
 
                     Text(
@@ -139,119 +149,16 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                         style = MaterialTheme.typography.titleMedium
                     )
 
-                    // ✅ Grid of options
+                    //  Grid of options
                     PrayerStatusGrid(
                         selectedPrayer = selectedPrayer!!,
                         value = value,
                         viewModel = viewModel,
                         onClose = { coroutineScope.launch { sheetState.hide() } } // CHANGED: Updated onClose to use coroutineScope
                     )
-                    // CHANGED: Moved the prayer status options (Not Prayed, Prayed Late, etc.) inside ModalBottomSheet
-                    // CHANGED: These were previously outside the ModalBottomSheet and causing structural errors
-                    // Not Prayed
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                viewModel.savePrayerStatus(
-                                    selectedPrayer!!.name,
-                                    R.drawable.notprayed,
-                                    value,
-                                    R.drawable.notprayed
-                                )
-                                coroutineScope.launch { sheetState.hide() }
-                            }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.notprayed),
-                            contentDescription = "Not Prayed",
-                            modifier = Modifier.size(24.dp),
-                            colorFilter = ColorFilter.tint(Color.Black)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = "Not Prayed", fontSize = 16.sp)
-                    }
-                    // Prayed Late
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                viewModel.savePrayerStatus(
-                                    selectedPrayer!!.name,
-                                    R.drawable.prayedlate,
-                                    value,
-                                    R.drawable.prayedlate
-                                )
-                                coroutineScope.launch { sheetState.hide() }
-                            }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.prayedlate),
-                            contentDescription = "Prayed Late",
-                            modifier = Modifier.size(24.dp),
-                            colorFilter = ColorFilter.tint(Color.Red)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = "Prayed Late", fontSize = 16.sp)
-                    }
-                    // On Time
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                viewModel.savePrayerStatus(
-                                    selectedPrayer!!.name,
-                                    R.drawable.prayedontime,
-                                    value,
-                                    R.drawable.prayedontime
-                                )
-                                coroutineScope.launch { sheetState.hide() }
-                            }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.prayedontime),
-                            contentDescription = "On Time",
-                            modifier = Modifier.size(24.dp),
-                            colorFilter = ColorFilter.tint(Color.Yellow)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = "On Time", fontSize = 16.sp)
-                    }
-                    // In Jamaat
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                viewModel.savePrayerStatus(
-                                    selectedPrayer!!.name,
-                                    R.drawable.jamat,
-                                    value,
-                                    R.drawable.jamat
-                                )
-                                coroutineScope.launch { sheetState.hide() }
-                            }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.jamat),
-                            contentDescription = "In Jamaat",
-                            modifier = Modifier.size(24.dp),
-                            colorFilter = ColorFilter.tint(Color.Green)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = "In Jamaat", fontSize = 16.sp)
-                    }
                 }
             }
         }
-        // CHANGED: Removed the misplaced Row blocks that were outside ModalBottomSheet
     }
 }
 
@@ -266,11 +173,12 @@ fun PrayerStatusGrid(
     val coroutineScope = rememberCoroutineScope()
 
     val options = listOf(
-        Triple("Not Prayed", R.drawable.notprayed, Color.Black),
-        Triple("Prayed Late", R.drawable.prayedlate, Color.Red),
-        Triple("On Time", R.drawable.prayedontime, Color.Yellow),
-        Triple("In Jamaat", R.drawable.jamat, Color.Green)
+        Triple("Not Prayed", R.drawable.notprayed, Color(0xFF000000)),
+        Triple("Prayed Late", R.drawable.prayedlate, Color(0xFFD64F73)),
+        Triple("On Time", R.drawable.prayedontime, Color(0xFFFFD92E)),
+        Triple("In Jamaat", R.drawable.jamat, Color(0xFF1DD1A1))
     )
+
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2), // 2 columns → table format
