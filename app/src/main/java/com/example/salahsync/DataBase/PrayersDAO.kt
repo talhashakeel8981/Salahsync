@@ -12,8 +12,14 @@ import java.time.LocalDate
 @Dao
 interface PrayerDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPrayer(prayer: PrayerEntity) // 🛠️ CHANGED: Use PrayerEntity instead of Prayer
+    suspend fun insertPrayer(prayer: PrayerEntity)
 
     @Query("SELECT * FROM Prayers WHERE date = :date")
-    suspend fun getPrayersByDate(date: String): List<PrayerEntity> // 🛠️ CHANGED: Use String for date and return List<PrayerEntity>
+    suspend fun getPrayersByDate(date: String): List<PrayerEntity>
+
+    @Query("SELECT COUNT(*) FROM Prayers WHERE statusRes = :statusRes AND date = :date")
+    suspend fun getStatusCountByDate(statusRes: Int, date: String): Int
+
+    @Query("SELECT COUNT(*) FROM Prayers WHERE statusRes = :statusRes")
+    suspend fun getTotalStatusCount(statusRes: Int): Int
 }

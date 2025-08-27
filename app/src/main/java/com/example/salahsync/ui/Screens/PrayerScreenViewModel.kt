@@ -6,31 +6,50 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.salahsync.DataBase.PrayerDao
 import com.example.salahsync.DataBase.PrayerEntity
+import com.example.salahsync.R
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import androidx.compose.runtime.State
 
 class PrayerScreenViewModel(private val dao: PrayerDao) : ViewModel() {
+    private val _prayedCount = mutableStateOf(0)
+    val prayedCount: State<Int> = _prayedCount
+    private val _notPrayedCount = mutableStateOf(0)
+    val notPrayedCount: State<Int> = _notPrayedCount
+    private val _onTimeCount = mutableStateOf(0)
+    val onTimeCount: State<Int> = _onTimeCount
+
     private val _prayerStatusImages = mutableStateOf<Map<String, Int>>(emptyMap())
-    val prayerStatusImages: androidx.compose.runtime.State<Map<String, Int>> = _prayerStatusImages
+    val prayerStatusImages: State<Map<String, Int>> = _prayerStatusImages
 
     fun loadPrayers(date: LocalDate) {
         viewModelScope.launch {
-            val prayers = dao.getPrayersByDate(date.toString()) // 🛠️ CHANGED: Convert LocalDate to String
-            _prayerStatusImages.value = prayers.associate { it.name to it.statusRes } // 🛠️ CHANGED: Use statusRes instead of iconRes
+            val prayers = dao.getPrayersByDate(date.toString())
+            _prayerStatusImages.value = prayers.associate { it.name to it.statusRes }
         }
     }
 
-    fun savePrayerStatus(name: String, statusRes: Int, date: LocalDate, statusResAgain: Int) { // 🛠️ CHANGED: Renamed iconRes to statusRes for clarity
+    fun savePrayerStatus(name: String, statusRes: Int, date: LocalDate, statusResAgain: Int) {
         viewModelScope.launch {
             dao.insertPrayer(
                 PrayerEntity(
                     name = name,
-                    iconRes = statusRes, // 🛠️ CHANGED: Use statusRes for iconRes in PrayerEntity
+                    iconRes = statusRes,
                     date = date.toString(),
                     statusRes = statusResAgain
                 )
             )
-            _prayerStatusImages.value = _prayerStatusImages.value + (name to statusResAgain)
+            _prayerStatusImages.value = _prayerStatusImages.value.toMutableMap().apply { put(name, statusResAgain) }
+        }
+    }
+
+    // Added new function to load stats
+    // COMMENT: This fetches the total counts for Prayed, Not Prayed, and On Time using the new DAO queries
+    fun loadStats(date: LocalDate) {
+        viewModelScope.launch {
+            _prayedCount.value = dao.getTotalStatusCount(R.drawable.prayedontime)
+            _notPrayedCount.value = dao.getTotalStatusCount(R.drawable.notprayed)
+            _onTimeCount.value = dao.getTotalStatusCount(R.drawable.prayedontime)
         }
     }
 }

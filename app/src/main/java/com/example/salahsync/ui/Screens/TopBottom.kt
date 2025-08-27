@@ -92,7 +92,10 @@ fun TopBottom(viewModel: PrayerScreenViewModel) {
                     }
                 }
 
-                composable("stats") { StatisticsScreen() }
+                // Updated to pass viewModel to StatisticsScreen
+                // COMMENT: Ensures the Stats screen can access the ViewModel for data
+
+                composable("stats") { StatisticsScreen(viewModel) }
                 composable("settings") { SettingsNavHost() }
             }
         }
