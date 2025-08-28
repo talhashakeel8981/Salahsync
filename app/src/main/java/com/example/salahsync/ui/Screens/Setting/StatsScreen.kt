@@ -41,15 +41,26 @@ import androidx.compose.ui.unit.sp
 
 import java.time.LocalDate
 
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+
+
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun StatisticsScreen(viewModel: PrayerScreenViewModel) {
-    val prayedCount by viewModel.prayedCount
+    val prayedCount by viewModel.prayedCount // "Prayed Late"
     val notPrayedCount by viewModel.notPrayedCount
-    val onTimeCount by viewModel.onTimeCount
+    val onTimeCount by viewModel.onTimeCount // "On Time"
     val jamat by viewModel.jamatCount
+    val total by viewModel.totalCounts
 
-    // Load stats when screen opens
     LaunchedEffect(Unit) {
         viewModel.loadStats(LocalDate.now())
     }
@@ -67,41 +78,43 @@ fun StatisticsScreen(viewModel: PrayerScreenViewModel) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 1st row -> Prayed + Not Prayed
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            StatBox(
-                title = "Prayed",
+            StatBoxWithPercentage(
+                title = "Prayed Late",
                 count = prayedCount,
+                total = total,
                 color = Color(0xFF4CAF50),
-                modifier = Modifier.weight(1f) // ✅ equal width
+                modifier = Modifier.weight(1f)
             )
-            StatBox(
+            StatBoxWithPercentage(
                 title = "Not Prayed",
                 count = notPrayedCount,
+                total = total,
                 color = Color(0xFFF44336),
-                modifier = Modifier.weight(1f) // ✅ equal width
+                modifier = Modifier.weight(1f)
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 2nd row -> On Time + Jamaat
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            StatBox(
+            StatBoxWithPercentage(
                 title = "On Time",
                 count = onTimeCount,
+                total = total,
                 color = Color(0xFFFFC107),
                 modifier = Modifier.weight(1f)
             )
-            StatBox(
+            StatBoxWithPercentage(
                 title = "Jamaat",
                 count = jamat,
+                total = total,
                 color = Color(0xFF2196F3),
                 modifier = Modifier.weight(1f)
             )
@@ -110,11 +123,20 @@ fun StatisticsScreen(viewModel: PrayerScreenViewModel) {
 }
 
 @Composable
-fun StatBox(title: String, count: Int, color: Color, modifier: Modifier = Modifier) {
+fun StatBoxWithPercentage(
+    title: String,
+    count: Int,
+    total: Int,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    val percentage = if (total > 0) (count * 100) / total else 0
+    // COMMENT: Prevents divide-by-zero error
+
     Card(
         modifier = modifier.height(100.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.15f)), // soft background
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.15f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -126,7 +148,11 @@ fun StatBox(title: String, count: Int, color: Color, modifier: Modifier = Modifi
         ) {
             Text(text = title, style = MaterialTheme.typography.bodyLarge, color = color)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "$count", style = MaterialTheme.typography.headlineMedium, color = color)
+            Text(
+                text = "$count ($percentage%)",
+                style = MaterialTheme.typography.headlineMedium,
+                color = color
+            )
         }
     }
 }
