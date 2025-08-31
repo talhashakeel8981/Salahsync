@@ -39,6 +39,11 @@ import androidx.compose.ui.graphics.Color
 
 import java.time.LocalDate
 
+
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -70,80 +75,64 @@ fun StatisticsScreen(viewModel: PrayerScreenViewModel) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-//                .padding(innerPadding) //
                 .background(Color(0xFFF3F5F8))
-
-
-        )
-        {
-
-
-        //
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding) //
-                .padding(16.dp)
-
-            ,
-            horizontalAlignment = Alignment.CenterHorizontally
-
-
+                .padding(innerPadding)
         ) {
-
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Row 1 → Jamaat -------- On Time
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            // 🔹 Grid with 2 columns → 4 boxes total
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                StatBoxWithPercentage(
-                    title = "Jamaat",
-                    count = jamat,
-                    total = total,
-                    color = Color(0xFF2196F3),
-                    modifier = Modifier.weight(1f),
-                    icon = com.example.salahsync.R.drawable.jamat
-                )
-                StatBoxWithPercentage(
-                    title = "On Time",
-                    count = onTimeCount,
-                    total = total,
-                    color = Color(0xFFFFC107),
-                    modifier = Modifier.weight(1f),
-                    icon = com.example.salahsync.R.drawable.prayedontime
-                )
-            }
+                // Box 1
+                item {
+                    StatBoxWithPercentage(
+                        title = "Jamaat",
+                        count = jamat,
+                        total = total,
+                        color = Color(0xFF2196F3),
+                        icon = com.example.salahsync.R.drawable.jamat
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                // Box 2
+                item {
+                    StatBoxWithPercentage(
+                        title = "On Time",
+                        count = onTimeCount,
+                        total = total,
+                        color = Color(0xFFFFC107),
+                        icon = com.example.salahsync.R.drawable.prayedontime
+                    )
+                }
 
-            // Row 2 → Prayed Late -------- Not Prayed
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                StatBoxWithPercentage(
-                    title = "Prayed Late",
-                    count = prayedCount,
-                    total = total,
-                    color = Color(0xFF4CAF50),
-                    modifier = Modifier.weight(1f),
-                    icon = com.example.salahsync.R.drawable.prayedlate
-                )
-                StatBoxWithPercentage(
-                    title = "Not Prayed",
-                    count = notPrayedCount,
-                    total = total,
-                    color = Color(0xFFF44336),
-                    modifier = Modifier.weight(1f),
-                    icon = com.example.salahsync.R.drawable.notprayed
-                )
+                // Box 3
+                item {
+                    StatBoxWithPercentage(
+                        title = "Prayed Late",
+                        count = prayedCount,
+                        total = total,
+                        color = Color(0xFF4CAF50),
+                        icon = com.example.salahsync.R.drawable.prayedlate
+                    )
+                }
+
+                // Box 4
+                item {
+                    StatBoxWithPercentage(
+                        title = "Not Prayed",
+                        count = notPrayedCount,
+                        total = total,
+                        color = Color(0xFFF44336),
+                        icon = com.example.salahsync.R.drawable.notprayed
+                    )
+                }
             }
         }
     }
-}
 }
 
 @Composable
@@ -152,18 +141,15 @@ fun StatBoxWithPercentage(
     count: Int,
     total: Int,
     color: Color,
-    modifier: Modifier = Modifier,
-    icon: Int //  NEW: parameter for drawable icon
-
+    icon: Int,
+    modifier: Modifier = Modifier
 ) {
     val percentage = if (total > 0) (count * 100) / total else 0
 
     Card(
-        modifier = modifier.height(120.dp),
+        modifier = modifier.height(140.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = color // 🔄 CHANGED: removed fade (alpha)
-        ),
+        colors = CardDefaults.cardColors(containerColor = color),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -181,13 +167,13 @@ fun StatBoxWithPercentage(
                 Icon(
                     painter = painterResource(id = icon),
                     contentDescription = title,
-                    tint = Color.White, //  CHANGED: white icon for contrast
+                    tint = Color.White,
                     modifier = Modifier.height(20.dp)
                 )
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White //  CHANGED: white text for contrast
+                    color = Color.White
                 )
             }
 
@@ -202,16 +188,12 @@ fun StatBoxWithPercentage(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Count / Total
+            // Count
             Text(
                 text = "$count Times",
                 fontSize = 14.sp,
-                color = Color.White.copy(alpha = 0.9f) // slightly softer white
+                color = Color.White.copy(alpha = 0.9f)
             )
         }
     }
-
 }
-
-
-
