@@ -1,5 +1,6 @@
 package com.example.salahsync.ui.Screens.Setting
 
+import android.graphics.Color.rgb
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -78,7 +79,6 @@ fun StatisticsScreen(viewModel: PrayerScreenViewModel) {
                 .background(Color(0xFFF3F5F8))
                 .padding(innerPadding)
         ) {
-            // 🔹 Grid with 2 columns → 4 boxes total
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier
@@ -93,8 +93,9 @@ fun StatisticsScreen(viewModel: PrayerScreenViewModel) {
                         title = "Jamaat",
                         count = jamat,
                         total = total,
-                        color = Color(0xFF2196F3),
-                        icon = com.example.salahsync.R.drawable.jamat
+                        backgroundColor = Color(rgb(94, 147, 108)),
+                        icon = com.example.salahsync.R.drawable.jamat,
+                        iconTint = Color(0xFF1DD1A1)
                     )
                 }
 
@@ -104,8 +105,9 @@ fun StatisticsScreen(viewModel: PrayerScreenViewModel) {
                         title = "On Time",
                         count = onTimeCount,
                         total = total,
-                        color = Color(0xFFFFC107),
-                        icon = com.example.salahsync.R.drawable.prayedontime
+                        backgroundColor = Color(rgb(255, 217, 61)),
+                        icon = com.example.salahsync.R.drawable.prayedontime,
+                        iconTint = Color(rgb(255, 154, 0))
                     )
                 }
 
@@ -115,8 +117,9 @@ fun StatisticsScreen(viewModel: PrayerScreenViewModel) {
                         title = "Prayed Late",
                         count = prayedCount,
                         total = total,
-                        color = Color(0xFF4CAF50),
-                        icon = com.example.salahsync.R.drawable.prayedlate
+                        backgroundColor = Color(rgb(255, 99, 99)),
+                        icon = com.example.salahsync.R.drawable.prayedlate,
+                        iconTint = Color(0xFFD64F73) //
                     )
                 }
 
@@ -126,8 +129,9 @@ fun StatisticsScreen(viewModel: PrayerScreenViewModel) {
                         title = "Not Prayed",
                         count = notPrayedCount,
                         total = total,
-                        color = Color(0xFFF44336),
-                        icon = com.example.salahsync.R.drawable.notprayed
+                        backgroundColor = Color(rgb(87, 86, 79)),
+                        icon = com.example.salahsync.R.drawable.notprayed,
+                        iconTint = Color(0xFF000000)
                     )
                 }
             }
@@ -140,8 +144,9 @@ fun StatBoxWithPercentage(
     title: String,
     count: Int,
     total: Int,
-    color: Color,
+    backgroundColor: Color,   // 👈 alag background color
     icon: Int,
+    iconTint: Color,          // 👈 alag icon color
     modifier: Modifier = Modifier
 ) {
     val percentage = if (total > 0) (count * 100) / total else 0
@@ -149,7 +154,7 @@ fun StatBoxWithPercentage(
     Card(
         modifier = modifier.height(140.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = color),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -159,7 +164,6 @@ fun StatBoxWithPercentage(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Row: Icon + Title
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -167,7 +171,7 @@ fun StatBoxWithPercentage(
                 Icon(
                     painter = painterResource(id = icon),
                     contentDescription = title,
-                    tint = Color.White,
+                    tint = iconTint, // 👈 ab yahan custom color aayega
                     modifier = Modifier.height(20.dp)
                 )
                 Text(
@@ -179,7 +183,6 @@ fun StatBoxWithPercentage(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Percentage
             Text(
                 text = "$percentage%",
                 style = MaterialTheme.typography.headlineMedium,
@@ -188,11 +191,10 @@ fun StatBoxWithPercentage(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Count
             Text(
                 text = "$count Times",
                 fontSize = 14.sp,
-                color = Color.White.copy(alpha = 0.9f)
+                color = Color.White
             )
         }
     }
