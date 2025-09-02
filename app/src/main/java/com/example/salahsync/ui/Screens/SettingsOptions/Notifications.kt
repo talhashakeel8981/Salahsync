@@ -11,45 +11,62 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
 import android.text.format.DateFormat
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
+import android.Manifest
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 
-import kotlin.math.abs
+import androidx.core.content.ContextCompat
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
+import com.example.salahsync.ui.Screens.Setting.Notification.NotificationReceiver
+import java.time.LocalDateTime
+import java.time.ZoneId
+
+// Add NotificationReceiver import for scheduling notifications
+
+
+import android.content.pm.PackageManager
+import android.util.Log
+
+
+import android.provider.Settings
+import com.example.salahsync.ui.Screens.Setting.Notification.NotificationHelper
+
+
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            Toast.makeText(context, "Notification permission denied", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Notification permission granted", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    // Center the title text
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
@@ -69,40 +86,111 @@ fun NotificationScreen(onBack: () -> Unit) {
             )
         }
     ) { innerPadding ->
-        // Screen content
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            // Add your toggle here
-            DailyReminderToggle()
+            DailyReminderToggle(
+                onRequestPermission = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
+            )
+
+
         }
     }
 }
 
-
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DailyReminderToggle() {
-    var isChecked by remember { mutableStateOf(false) }
-    var showTimeSheet by remember { mutableStateOf(false) }
-    var selectedTime by remember { mutableStateOf(LocalTime.of(8, 0)) }
-
+fun DailyReminderToggle(
+    onRequestPermission: () -> Unit
+) {
     val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("notification_prefs", Context.MODE_PRIVATE)
+
+    // Load saved state from SharedPreferences
+    var isChecked by remember {
+        mutableStateOf(sharedPreferences.getBoolean("is_notification_enabled", false))
+    }
+    var selectedTime by remember {
+        val savedTime = sharedPreferences.getString("notification_time", "12:00")
+        mutableStateOf(LocalTime.parse(savedTime ?: "12:00", DateTimeFormatter.ofPattern("HH:mm")))
+    }
+
+    // Save state when it changes
+    LaunchedEffect(isChecked, selectedTime) {
+        with(sharedPreferences.edit()) {
+            putBoolean("is_notification_enabled", isChecked)
+            putString("notification_time", selectedTime.format(DateTimeFormatter.ofPattern("HH:mm")))
+            apply()
+            Log.d("NotificationScreen", "Saved state: isChecked=$isChecked, time=$selectedTime")
+        }
+    }
+
     val formatter = if (DateFormat.is24HourFormat(context))
         DateTimeFormatter.ofPattern("HH:mm")
     else
         DateTimeFormatter.ofPattern("hh:mm a")
+
+    // Check permissions
+    val hasNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+    } else {
+        true
+    }
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val hasExactAlarmPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        alarmManager.canScheduleExactAlarms()
+    } else {
+        true
+    }
+
+    var showTimeSheet by remember { mutableStateOf(false) }
+    var pendingSchedule by remember { mutableStateOf(false) }
+
+    val exactAlarmLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
+        if (pendingSchedule) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && alarmManager.canScheduleExactAlarms()) {
+                scheduleNotification(context, selectedTime)
+                Log.d("NotificationScreen", "Notification scheduled after enabling exact alarms")
+            } else {
+                Toast.makeText(context, "Exact alarm permission not granted", Toast.LENGTH_SHORT).show()
+            }
+            pendingSchedule = false
+        }
+    }
 
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .toggleable(value = isChecked, onValueChange = { isChecked = it }),
+                .toggleable(value = isChecked, onValueChange = { newValue ->
+                    if (newValue && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
+                        onRequestPermission()
+                    }
+                    isChecked = newValue
+                    if (newValue && hasNotificationPermission && hasExactAlarmPermission) {
+                        Log.d("NotificationScreen", "Scheduling notification for ${selectedTime.format(formatter)}")
+                        scheduleNotification(context, selectedTime)
+                    } else if (newValue && hasNotificationPermission && !hasExactAlarmPermission) {
+                        Log.d("NotificationScreen", "Requesting exact alarm permission")
+                        Toast.makeText(context, "Please enable exact alarms in settings", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                        exactAlarmLauncher.launch(intent)
+                        pendingSchedule = true
+                    } else {
+                        Log.d("NotificationScreen", "Canceling notification")
+                        cancelNotification(context)
+                    }
+                }),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -131,9 +219,86 @@ fun DailyReminderToggle() {
             onConfirm = {
                 selectedTime = it
                 showTimeSheet = false
+                if (isChecked && hasNotificationPermission && hasExactAlarmPermission) {
+                    Log.d("NotificationScreen", "Rescheduling notification for ${selectedTime.format(formatter)}")
+                    scheduleNotification(context, selectedTime)
+                } else if (isChecked && hasNotificationPermission && !hasExactAlarmPermission) {
+                    Log.d("NotificationScreen", "Requesting exact alarm permission for reschedule")
+                    Toast.makeText(context, "Please enable exact alarms in settings", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                    exactAlarmLauncher.launch(intent)
+                    pendingSchedule = true
+                }
             }
         )
     }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun scheduleNotification(context: Context, time: LocalTime) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val intent = Intent(context, NotificationReceiver::class.java).apply {
+        putExtra("title", "Daily Reminder")
+        putExtra("message", "Time to check your Salah schedule!")
+    }
+    val pendingIntent = PendingIntent.getBroadcast(
+        context,
+        0,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+
+    // Calculate trigger time
+    val now = LocalDateTime.now()
+    var triggerTime = LocalDateTime.of(now.toLocalDate(), time)
+    if (triggerTime.isBefore(now) || triggerTime.isEqual(now)) {
+        triggerTime = triggerTime.plusDays(1)
+    }
+    val triggerMillis = triggerTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    Log.d("NotificationScreen", "Calculated trigger time: ${triggerTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)} ($triggerMillis)")
+
+    // Create notification channel before scheduling
+    NotificationHelper.createNotificationChannel(context)
+
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerMillis,
+                    pendingIntent
+                )
+                Log.d("NotificationScreen", "Exact alarm scheduled at $triggerMillis")
+            } else {
+                Log.e("NotificationScreen", "Cannot schedule exact alarms")
+                Toast.makeText(context, "Exact alarm permission not granted", Toast.LENGTH_SHORT).show()
+                return
+            }
+        } else {
+            alarmManager.setExact(
+                AlarmManager.RTC_WAKEUP,
+                triggerMillis,
+                pendingIntent
+            )
+            Log.d("NotificationScreen", "Alarm scheduled at $triggerMillis")
+        }
+    } catch (e: SecurityException) {
+        Log.e("NotificationScreen", "Failed to schedule alarm: ${e.message}")
+        Toast.makeText(context, "Failed to schedule notification: ${e.message}", Toast.LENGTH_SHORT).show()
+    }
+}
+
+private fun cancelNotification(context: Context) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val intent = Intent(context, NotificationReceiver::class.java)
+    val pendingIntent = PendingIntent.getBroadcast(
+        context,
+        0,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+    alarmManager.cancel(pendingIntent)
+    Log.d("NotificationScreen", "Notification canceled")
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -156,7 +321,6 @@ fun TimePickerBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
-            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -175,7 +339,6 @@ fun TimePickerBottomSheet(
 
             Spacer(Modifier.height(24.dp))
 
-            // Time picker row
             Row(verticalAlignment = Alignment.CenterVertically) {
                 InfiniteNumberPicker(
                     values = if (is24h) (0..23).toList() else (1..12).toList(),
@@ -217,7 +380,7 @@ fun InfiniteNumberPicker(
     onSelected: (Int) -> Unit
 ) {
     val itemHeight = 50.dp
-    val visibleCount = 3 // how many rows visible at once (1 above, 1 center, 1 below)
+    val visibleCount = 3
 
     val state = rememberLazyListState(
         initialFirstVisibleItemIndex = values.indexOf(selected) + 1000 * values.size
@@ -226,11 +389,10 @@ fun InfiniteNumberPicker(
 
     Box(
         modifier = Modifier
-            .height(itemHeight * visibleCount) // ensure 3 items visible
+            .height(itemHeight * visibleCount)
             .width(70.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Selection highlight (center row)
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -264,7 +426,6 @@ fun InfiniteNumberPicker(
         }
     }
 
-    // Update selection on scroll stop
     LaunchedEffect(state.isScrollInProgress) {
         if (!state.isScrollInProgress) {
             val centerIndex = state.firstVisibleItemIndex + 1
@@ -274,10 +435,3 @@ fun InfiniteNumberPicker(
     }
 }
 
-
-
-@Preview(showBackground = true)
-@Composable
-fun NotificationScreenPreview() {
-    NotificationScreen(onBack = { })
-}
