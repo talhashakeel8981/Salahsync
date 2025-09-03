@@ -73,7 +73,7 @@ import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TopBottom(viewModel: PrayerScreenViewModel) {
+fun TopBottom(viewModel: PrayerScreenViewModel,startDestination: String = "home") {
     val bottomNavController = rememberNavController()
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
 

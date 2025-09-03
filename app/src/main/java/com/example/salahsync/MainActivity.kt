@@ -33,10 +33,16 @@ class MainActivity : ComponentActivity() {
         val factory = PrayerViewModelFactory(dao)
         val viewModel = ViewModelProvider(this, factory)[PrayerScreenViewModel::class.java]
 
+        // 👇 read flag from notification
+        val navigateTo = intent.getStringExtra("navigateTo")
+
         setContent {
             ThemeControl(viewModel = viewModel) { selectedTheme, _ ->
                 AppTheme(themeMode = selectedTheme) {
-                    TopBottom(viewModel = viewModel)
+                    TopBottom(
+                        viewModel = viewModel,
+                        startDestination = if (navigateTo == "prayer") "prayerScreen" else "home"
+                    )
                 }
             }
         }

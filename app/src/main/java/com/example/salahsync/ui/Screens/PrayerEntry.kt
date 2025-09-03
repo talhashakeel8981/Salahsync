@@ -33,16 +33,21 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import androidx.compose.foundation.lazy.grid.items // CHANGED: Explicitly import the correct 'items' for LazyVerticalGrid
 import androidx.compose.ui.layout.ContentScale
-
+import android.view.SoundEffectConstants
+import androidx.compose.ui.platform.LocalView
 private val PrimaryBlue = Color(0xFF007AFF) // Replaces Color(0, 122, 255)
 private val BackgroundLightGray = Color(0xFFF3F5F8) // Replaces Color(243, 245, 248)
 private val CardBackgroundGray = Color(0xFFF5F5F5) // Replaces Color(245, 245, 245)
+
+
 @Composable
 fun PrayerList(
     prayers: List<PrayerTilesData>,
     prayerStatusImages: Map<String, Int>,
     onPrayerClick: (PrayerTilesData) -> Unit
-) {
+)
+{
+    val view = LocalView.current //for tap sound
     LazyColumn {
         items(prayers) { prayer ->
             Card(
@@ -51,7 +56,9 @@ fun PrayerList(
                     .padding(top = 16.dp, start = 10.dp, end = 10.dp)
                     .height(85.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .clickable { onPrayerClick(prayer) }
+                    .clickable { onPrayerClick(prayer)
+                    view.playSoundEffect(SoundEffectConstants.CLICK)
+                    }
             ) {
                 Row(
                     modifier = Modifier
