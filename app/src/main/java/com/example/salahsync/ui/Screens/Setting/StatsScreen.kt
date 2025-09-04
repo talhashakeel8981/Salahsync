@@ -14,10 +14,13 @@ import com.example.salahsync.ui.Screens.PrayerScreenViewModel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -144,58 +147,117 @@ fun StatBoxWithPercentage(
     title: String,
     count: Int,
     total: Int,
-    backgroundColor: Color,   // 👈 alag background color
+    backgroundColor: Color,
     icon: Int,
-    iconTint: Color,          // 👈 alag icon color
+    iconTint: Color,
     modifier: Modifier = Modifier
 ) {
     val percentage = if (total > 0) (count * 100) / total else 0
 
     Card(
-        modifier = modifier.height(140.dp),
+        modifier = modifier
+            .height(200.dp) // fixed height
+            .fillMaxWidth(), // take full width of grid cell
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(12.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // ✅ Left Side Stats
+            Column(
+                modifier = Modifier
+                    .weight(0.9f) // give fixed space
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Icon(
-                    painter = painterResource(id = icon),
-                    contentDescription = title,
-                    tint = iconTint, // 👈 ab yahan custom color aayega
-                    modifier = Modifier.height(20.dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = icon),
+                        contentDescription = title,
+                        tint = iconTint,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = "$percentage%",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.White
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "$count Times",
+                    fontSize = 14.sp,
                     color = Color.White
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "$percentage%",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color.White
+            // ✅ Right Side Prayer Bar Chart
+            PrayerBarChart(
+                prayerCounts = mapOf(
+                    "Fajr" to 1,
+                    "Zuhr" to 3,
+                    "Asr" to 2,
+                    "Maghrib" to 4,
+                    "Isha" to 2
+                ),
+                modifier = Modifier
+                    .weight(1.1f) // chart thoda zyada space le
+                    .padding(start = 8.dp)
             )
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(4.dp))
+@Composable
+fun PrayerBarChart(
+    prayerCounts: Map<String, Int>,
+    modifier: Modifier = Modifier
+) {
+    val maxCount = (prayerCounts.values.maxOrNull() ?: 1).toFloat()
 
-            Text(
-                text = "$count Times",
-                fontSize = 14.sp,
-                color = Color.White
-            )
+    Column(
+        modifier = modifier.fillMaxHeight(),
+        verticalArrangement = Arrangement.SpaceEvenly
+    ) {
+        prayerCounts.forEach { (name, count) ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Short Prayer Name (Faj, Zuh, Asr, etc.)
+                Text(
+                    text = name.take(3),
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    modifier = Modifier.width(45.dp)
+                )
+
+                // Bar
+                Box(
+                    modifier = Modifier
+                        .height(14.dp) // fixed bar height
+                        .fillMaxWidth(fraction = count / maxCount)
+                        .background(Color.White, shape = RoundedCornerShape(4.dp))
+                )
+            }
         }
     }
 }
