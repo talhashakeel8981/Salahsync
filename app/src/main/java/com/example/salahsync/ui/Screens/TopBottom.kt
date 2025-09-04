@@ -46,7 +46,7 @@ import androidx.compose.runtime.*
 
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
-import com.example.salahsync.ui.Screens.Setting.StatisticsScreen
+import com.example.salahsync.ui.Screens.Setting.StatsScreen
 
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -95,7 +95,7 @@ fun TopBottom(viewModel: PrayerScreenViewModel,startDestination: String = "home"
                 // Updated to pass viewModel to StatisticsScreen
                 // COMMENT: Ensures the Stats screen can access the ViewModel for data
 
-                composable("stats") { StatisticsScreen(viewModel) }
+                composable("stats") { StatsScreen(viewModel) }
                 composable("settings") { SettingsNavHost() }
             }
         }

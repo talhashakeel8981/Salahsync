@@ -40,14 +40,14 @@ private val BackgroundLightGray = Color(0xFFF3F5F8) // Replaces Color(243, 245, 
 private val CardBackgroundGray = Color(0xFFF5F5F5) // Replaces Color(245, 245, 245)
 
 
+
 @Composable
 fun PrayerList(
     prayers: List<PrayerTilesData>,
     prayerStatusImages: Map<String, Int>,
     onPrayerClick: (PrayerTilesData) -> Unit
-)
-{
-    val view = LocalView.current //for tap sound
+) {
+    val view = LocalView.current
     LazyColumn {
         items(prayers) { prayer ->
             Card(
@@ -56,8 +56,9 @@ fun PrayerList(
                     .padding(top = 16.dp, start = 10.dp, end = 10.dp)
                     .height(85.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .clickable { onPrayerClick(prayer)
-                    view.playSoundEffect(SoundEffectConstants.CLICK)
+                    .clickable {
+                        onPrayerClick(prayer)
+                        view.playSoundEffect(SoundEffectConstants.CLICK)
                     }
             ) {
                 Row(
@@ -70,9 +71,9 @@ fun PrayerList(
                     Image(
                         painter = painterResource(id = prayer.iconRes),
                         contentDescription = prayer.name,
-                        colorFilter = ColorFilter.tint(PrimaryBlue), // CHANGED: Line 52 - Replaced Color(0, 122, 255) with PrimaryBlue for consistency
+                        colorFilter = ColorFilter.tint(PrimaryBlue),
                         modifier = Modifier.size(60.dp),
-                        contentScale = ContentScale.Fit // ADDED: Line 54 - Added contentScale to ensure proper image rendering and tint application
+                        contentScale = ContentScale.Fit
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
@@ -84,9 +85,8 @@ fun PrayerList(
                     Image(
                         painter = painterResource(id = statusIcon),
                         contentDescription = "Prayer Status",
-                        contentScale = ContentScale.Fit, // ADDED: Line 63 - Added contentScale to ensure proper image rendering
+                        contentScale = ContentScale.Fit,
                         modifier = Modifier.size(32.dp)
-
                     )
                 }
             }
@@ -101,16 +101,10 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
     val coroutineScope = rememberCoroutineScope()
     var selectedPrayer by remember { mutableStateOf<PrayerTilesData?>(null) }
     val prayerStatusImages by viewModel.prayerStatusImages
-    val prayers = listOf(
-        PrayerTilesData("Fajr", R.drawable.ic_fajr),
-        PrayerTilesData("Dhuhr", R.drawable.ic_dhuhur),
-        PrayerTilesData("Asr", R.drawable.ic_asr),
-        PrayerTilesData("Maghrib", R.drawable.ic_maghrib),
-        PrayerTilesData("Isha", R.drawable.ic_esha)
-    )
 
     LaunchedEffect(value) {
         viewModel.loadPrayers(value)
+        viewModel.loadStats(value) // Ensures global stats for StatsScreen
     }
 
     Box(
@@ -120,8 +114,8 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
             .background(BackgroundLightGray)
     ) {
         PrayerList(
-            prayers,
-            prayerStatusImages
+            prayers = prayer, // Use global 'prayer' from PrayerTilesData.kt
+            prayerStatusImages = prayerStatusImages
         ) { clickedPrayer ->
             selectedPrayer = clickedPrayer
             coroutineScope.launch { sheetState.show() }
@@ -142,26 +136,22 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Top icon of selected prayer
                     Image(
                         painter = painterResource(id = selectedPrayer!!.iconRes),
                         contentDescription = selectedPrayer!!.name,
                         modifier = Modifier.size(64.dp),
-                        colorFilter = ColorFilter.tint(Color(0, 122, 255)),
-                        contentScale = ContentScale.Fit // ADDED: Line 162 - Added contentScale for proper rendering
+                        colorFilter = ColorFilter.tint(PrimaryBlue),
+                        contentScale = ContentScale.Fit
                     )
-
                     Text(
                         text = "How did you complete ${selectedPrayer?.name} today?",
                         style = MaterialTheme.typography.titleMedium
                     )
-
-                    //  Grid of options
                     PrayerStatusGrid(
                         selectedPrayer = selectedPrayer!!,
                         value = value,
                         viewModel = viewModel,
-                        onClose = { coroutineScope.launch { sheetState.hide() } } // CHANGED: Updated onClose to use coroutineScope
+                        onClose = { coroutineScope.launch { sheetState.hide() } }
                     )
                 }
             }
@@ -178,7 +168,6 @@ fun PrayerStatusGrid(
     onClose: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-
     val options = listOf(
         Triple("Not Prayed", R.drawable.notprayed, Color(0xFF000000)),
         Triple("Prayed Late", R.drawable.prayedlate, Color(0xFFD64F73)),
@@ -186,9 +175,8 @@ fun PrayerStatusGrid(
         Triple("In Jamaat", R.drawable.jamat, Color(0xFF1DD1A1))
     )
 
-
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2), // 2 columns → table format
+        columns = GridCells.Fixed(2),
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
@@ -199,7 +187,7 @@ fun PrayerStatusGrid(
             Column(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(245, 245, 245))
+                    .background(CardBackgroundGray) // CHANGED: Use defined constant
                     .clickable {
                         viewModel.savePrayerStatus(
                             selectedPrayer.name,
@@ -224,9 +212,3 @@ fun PrayerStatusGrid(
         }
     }
 }
-
-//@Preview(showSystemUi = true)
-//@Composable
-//fun PrayerTrackingScreenPreview() {
-//    PrayerScreen(selectedDate.value)
-//}

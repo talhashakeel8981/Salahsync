@@ -30,8 +30,10 @@ interface PrayerDao {
     @Query("SELECT COUNT(*) FROM Prayers")
     suspend fun getTotalPrayers(): Int
 
-    // Added: Update an existing prayer
-    // COMMENT: Allows updating the status of an existing prayer instead of inserting duplicates
     @Update
     suspend fun updatePrayer(prayer: PrayerEntity)
+
+    // CHANGED: Added for bar chart updates
+    @Query("SELECT COUNT(*) FROM Prayers WHERE name = :prayerName AND statusRes != :notPrayedRes")
+    suspend fun getPrayerPerformedCount(prayerName: String, notPrayedRes: Int): Int
 }

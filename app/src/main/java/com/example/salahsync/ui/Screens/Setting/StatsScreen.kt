@@ -46,102 +46,48 @@ import java.time.LocalDate
 
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import com.example.salahsync.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
-fun StatisticsScreen(viewModel: PrayerScreenViewModel) {
-    val prayedCount by viewModel.prayedCount
-    val notPrayedCount by viewModel.notPrayedCount
-    val onTimeCount by viewModel.onTimeCount
-    val jamat by viewModel.jamatCount
-    val total by viewModel.totalCounts
+fun StatsScreen(viewModel: PrayerScreenViewModel) {
+    val prayerCounts by viewModel.prayerCounts
 
     LaunchedEffect(Unit) {
         viewModel.loadStats(LocalDate.now())
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Statistics")
-                    }
-                }
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(listOf(
+            Triple("Prayed Late", viewModel.prayedCount.value, R.drawable.prayedlate),
+            Triple("Not Prayed", viewModel.notPrayedCount.value, R.drawable.notprayed),
+            Triple("On Time", viewModel.onTimeCount.value, R.drawable.prayedontime),
+            Triple("In Jamaat", viewModel.jamatCount.value, R.drawable.jamat)
+        )) { (title, count, icon) ->
+            StatBoxWithPercentage(
+                title = title,
+                count = count,
+                total = viewModel.totalCounts.value,
+                backgroundColor = Color(0xFF007AFF),
+                icon = icon,
+                iconTint = Color.White,
+                prayerCounts = prayerCounts,
+                modifier = Modifier.fillMaxWidth()
             )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF3F5F8))
-                .padding(innerPadding)
-        ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Box 1
-                item {
-                    StatBoxWithPercentage(
-                        title = "Jamaat",
-                        count = jamat,
-                        total = total,
-                        backgroundColor = Color(rgb(94, 147, 108)),
-                        icon = com.example.salahsync.R.drawable.jamat,
-                        iconTint = Color(0xFF1DD1A1)
-                    )
-                }
-
-                // Box 2
-                item {
-                    StatBoxWithPercentage(
-                        title = "On Time",
-                        count = onTimeCount,
-                        total = total,
-                        backgroundColor = Color(rgb(255, 217, 61)),
-                        icon = com.example.salahsync.R.drawable.prayedontime,
-                        iconTint = Color(rgb(255, 154, 0))
-                    )
-                }
-
-                // Box 3
-                item {
-                    StatBoxWithPercentage(
-                        title = "Prayed Late",
-                        count = prayedCount,
-                        total = total,
-                        backgroundColor = Color(rgb(255, 99, 99)),
-                        icon = com.example.salahsync.R.drawable.prayedlate,
-                        iconTint = Color(0xFFD64F73) //
-                    )
-                }
-
-                // Box 4
-                item {
-                    StatBoxWithPercentage(
-                        title = "Not Prayed",
-                        count = notPrayedCount,
-                        total = total,
-                        backgroundColor = Color(rgb(87, 86, 79)),
-                        icon = com.example.salahsync.R.drawable.notprayed,
-                        iconTint = Color(0xFF000000)
-                    )
-                }
-            }
         }
     }
 }
-
 @Composable
 fun StatBoxWithPercentage(
     title: String,
@@ -150,14 +96,16 @@ fun StatBoxWithPercentage(
     backgroundColor: Color,
     icon: Int,
     iconTint: Color,
+    prayerCounts: Map<String, Int> = mapOf(
+        "Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0
+    ),
     modifier: Modifier = Modifier
 ) {
     val percentage = if (total > 0) (count * 100) / total else 0
-
     Card(
         modifier = modifier
-            .height(200.dp) // fixed height
-            .fillMaxWidth(), // take full width of grid cell
+            .height(200.dp)
+            .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -168,10 +116,9 @@ fun StatBoxWithPercentage(
                 .padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // ✅ Left Side Stats
             Column(
                 modifier = Modifier
-                    .weight(0.9f) // give fixed space
+                    .weight(0.9f)
                     .fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -192,35 +139,23 @@ fun StatBoxWithPercentage(
                         color = Color.White
                     )
                 }
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 Text(
                     text = "$percentage%",
                     style = MaterialTheme.typography.headlineMedium,
                     color = Color.White
                 )
-
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
                     text = "$count Times",
                     fontSize = 14.sp,
                     color = Color.White
                 )
             }
-
-            // ✅ Right Side Prayer Bar Chart
             PrayerBarChart(
-                prayerCounts = mapOf(
-                    "Fajr" to 1,
-                    "Zuhr" to 3,
-                    "Asr" to 2,
-                    "Maghrib" to 4,
-                    "Isha" to 2
-                ),
+                prayerCounts = prayerCounts,
                 modifier = Modifier
-                    .weight(1.1f) // chart thoda zyada space le
+                    .weight(1.1f)
                     .padding(start = 8.dp)
             )
         }
@@ -233,28 +168,24 @@ fun PrayerBarChart(
     modifier: Modifier = Modifier
 ) {
     val maxCount = (prayerCounts.values.maxOrNull() ?: 1).toFloat()
-
     Column(
         modifier = modifier.fillMaxHeight(),
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        prayerCounts.forEach { (name, count) ->
+        prayerCounts.entries.sortedByDescending { it.value }.forEach { (name, count) ->
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Short Prayer Name (Faj, Zuh, Asr, etc.)
                 Text(
                     text = name.take(3),
                     color = Color.White,
                     fontSize = 12.sp,
                     modifier = Modifier.width(45.dp)
                 )
-
-                // Bar
                 Box(
                     modifier = Modifier
-                        .height(14.dp) // fixed bar height
-                        .fillMaxWidth(fraction = count / maxCount)
+                        .height(14.dp)
+                        .fillMaxWidth(fraction = if (maxCount > 0) (count / maxCount).coerceAtLeast(0.1f) else 0.1f)
                         .background(Color.White, shape = RoundedCornerShape(4.dp))
                 )
             }
