@@ -47,47 +47,76 @@ import java.time.LocalDate
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.TopAppBarDefaults
 import com.example.salahsync.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
-
 @Composable
 fun StatsScreen(viewModel: PrayerScreenViewModel) {
-    val prayerCounts by viewModel.prayerCounts
-
+    val prayedLateCounts by viewModel.prayedLateCounts
+    val notPrayedCounts by viewModel.notPrayedCounts
+    val onTimeCounts by viewModel.onTimeCounts
+    val jamatCounts by viewModel.jamatCounts
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Prayer Stats",
+                        style = MaterialTheme.typography.titleLarge,
+                        // CHANGED: Use MaterialTheme color. Before: Hardcoded Color.White. After: Uses onSurface for dark mode.
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        },
+        modifier = Modifier.fillMaxSize()
+    ) { paddingValues ->
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(listOf(
+                Triple("Prayed Late", viewModel.prayedCount.value, R.drawable.prayedlate),
+                Triple("Not Prayed", viewModel.notPrayedCount.value, R.drawable.notprayed),
+                Triple("On Time", viewModel.onTimeCount.value, R.drawable.prayedontime),
+                Triple("In Jamaat", viewModel.jamatCount.value, R.drawable.jamat)
+            )) { (title, count, icon) ->
+                StatBoxWithPercentage(
+                    title = title,
+                    count = count,
+                    total = viewModel.totalCounts.value,
+                    backgroundColor = MaterialTheme.colorScheme.primary, // CHANGED: Use primary color
+                    icon = icon,
+                    iconTint = MaterialTheme.colorScheme.onPrimary, // CHANGED: Use onPrimary
+                    prayerCounts = when (title) {
+                        "Prayed Late" -> prayedLateCounts
+                        "Not Prayed" -> notPrayedCounts
+                        "On Time" -> onTimeCounts
+                        "In Jamaat" -> jamatCounts
+                        else -> emptyMap()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
     LaunchedEffect(Unit) {
         viewModel.loadStats(LocalDate.now())
     }
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(listOf(
-            Triple("Prayed Late", viewModel.prayedCount.value, R.drawable.prayedlate),
-            Triple("Not Prayed", viewModel.notPrayedCount.value, R.drawable.notprayed),
-            Triple("On Time", viewModel.onTimeCount.value, R.drawable.prayedontime),
-            Triple("In Jamaat", viewModel.jamatCount.value, R.drawable.jamat)
-        )) { (title, count, icon) ->
-            StatBoxWithPercentage(
-                title = title,
-                count = count,
-                total = viewModel.totalCounts.value,
-                backgroundColor = Color(0xFF007AFF),
-                icon = icon,
-                iconTint = Color.White,
-                prayerCounts = prayerCounts,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
 }
+
 @Composable
 fun StatBoxWithPercentage(
     title: String,
@@ -136,20 +165,20 @@ fun StatBoxWithPercentage(
                     Text(
                         text = title,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White
+                        color = iconTint // CHANGED: Match iconTint (onPrimary)
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "$percentage%",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White
+                    color = iconTint // CHANGED: Match iconTint
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "$count Times",
                     fontSize = 14.sp,
-                    color = Color.White
+                    color = iconTint // CHANGED: Match iconTint
                 )
             }
             PrayerBarChart(
@@ -168,17 +197,19 @@ fun PrayerBarChart(
     modifier: Modifier = Modifier
 ) {
     val maxCount = (prayerCounts.values.maxOrNull() ?: 1).toFloat()
+    val fixedPrayerOrder = listOf("Fajr", "Dhuhr", "Asr", "Maghrib", "Isha")
     Column(
         modifier = modifier.fillMaxHeight(),
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        prayerCounts.entries.sortedByDescending { it.value }.forEach { (name, count) ->
+        fixedPrayerOrder.forEach { name ->
+            val count = prayerCounts[name] ?: 0
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = name.take(3),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary, // CHANGED: Use onPrimary
                     fontSize = 12.sp,
                     modifier = Modifier.width(45.dp)
                 )
@@ -186,7 +217,7 @@ fun PrayerBarChart(
                     modifier = Modifier
                         .height(14.dp)
                         .fillMaxWidth(fraction = if (maxCount > 0) (count / maxCount).coerceAtLeast(0.1f) else 0.1f)
-                        .background(Color.White, shape = RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.onPrimary, shape = RoundedCornerShape(4.dp))
                 )
             }
         }

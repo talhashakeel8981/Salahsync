@@ -17,23 +17,20 @@ import com.example.salahsync.DataBase.PrayerEntity // Updated import: Use Prayer
 interface PrayerDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPrayer(prayer: PrayerEntity)
-
     @Query("SELECT * FROM Prayers WHERE date = :date")
     suspend fun getPrayersByDate(date: String): List<PrayerEntity>
-
     @Query("SELECT COUNT(*) FROM Prayers WHERE statusRes = :statusRes AND date = :date")
     suspend fun getStatusCountByDate(statusRes: Int, date: String): Int
-
     @Query("SELECT COUNT(*) FROM Prayers WHERE statusRes = :statusRes")
     suspend fun getTotalStatusCount(statusRes: Int): Int
-
     @Query("SELECT COUNT(*) FROM Prayers")
     suspend fun getTotalPrayers(): Int
-
     @Update
     suspend fun updatePrayer(prayer: PrayerEntity)
-
     // CHANGED: Added for bar chart updates
     @Query("SELECT COUNT(*) FROM Prayers WHERE name = :prayerName AND statusRes != :notPrayedRes")
     suspend fun getPrayerPerformedCount(prayerName: String, notPrayedRes: Int): Int
+    // CHANGED: Added new query to get count of a specific status for a specific prayer name across all dates. This allows per-status per-prayer counts for the bar charts. Before: No such query, leading to incorrect bar chart data using only performed counts. After: Enables fetching exact counts for each status-prayer combination.
+    @Query("SELECT COUNT(*) FROM Prayers WHERE name = :prayerName AND statusRes = :statusRes")
+    suspend fun getPrayerStatusCount(prayerName: String, statusRes: Int): Int
 }

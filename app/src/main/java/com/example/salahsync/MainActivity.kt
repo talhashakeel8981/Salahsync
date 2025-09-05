@@ -30,10 +30,11 @@ class MainActivity : ComponentActivity() {
             "prayer_db"
         ).build()
         val dao = db.prayerDao()
+        // CHANGED: Removed incorrect qualification `PrayerScreenViewModel.PrayerViewModelFactory`. Before: Used `PrayerScreenViewModel.PrayerViewModelFactory`, causing unresolved reference since the factory is not nested under `PrayerScreenViewModel`. After: Used `PrayerViewModelFactory` directly, matching the import and class definition.
         val factory = PrayerViewModelFactory(dao)
         val viewModel = ViewModelProvider(this, factory)[PrayerScreenViewModel::class.java]
 
-        // 👇 read flag from notification
+        // Read flag from notification
         val navigateTo = intent.getStringExtra("navigateTo")
 
         setContent {
