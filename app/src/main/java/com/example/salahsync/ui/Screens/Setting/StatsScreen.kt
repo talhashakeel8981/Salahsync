@@ -51,6 +51,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import com.example.salahsync.R
 
 
+// Define a data class to hold color configurations for each stat
+data class StatColors(
+    val backgroundColor: Color,
+    val iconTint: Color,
+    val barColor: Color
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -59,6 +66,47 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
     val notPrayedCounts by viewModel.notPrayedCounts
     val onTimeCounts by viewModel.onTimeCounts
     val jamatCounts by viewModel.jamatCounts
+
+    // Define color configurations for each stat
+    val statColorConfigs = listOf(
+        Triple(
+            "Prayed Late",
+            viewModel.prayedCount.value,
+            StatColors(
+                backgroundColor = MaterialTheme.colorScheme.primary,
+                iconTint = MaterialTheme.colorScheme.onPrimary,
+                barColor = Color(0xFFFFA726) // Orange
+            )
+        ),
+        Triple(
+            "Not Prayed",
+            viewModel.notPrayedCount.value,
+            StatColors(
+                backgroundColor = MaterialTheme.colorScheme.error,
+                iconTint = MaterialTheme.colorScheme.onError,
+                barColor = Color(0xFFEF5350) // Red
+            )
+        ),
+        Triple(
+            "On Time",
+            viewModel.onTimeCount.value,
+            StatColors(
+                backgroundColor = MaterialTheme.colorScheme.secondary,
+                iconTint = MaterialTheme.colorScheme.onSecondary,
+                barColor = Color(0xFF66BB6A) // Green
+            )
+        ),
+        Triple(
+            "In Jamaat",
+            viewModel.jamatCount.value,
+            StatColors(
+                backgroundColor = MaterialTheme.colorScheme.tertiary,
+                iconTint = MaterialTheme.colorScheme.onTertiary,
+                barColor = Color(0xFF42A5F5) // Blue
+            )
+        )
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -66,7 +114,6 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                     Text(
                         text = "Prayer Stats",
                         style = MaterialTheme.typography.titleLarge,
-                        // CHANGED: Use MaterialTheme color. Before: Hardcoded Color.White. After: Uses onSurface for dark mode.
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 },
@@ -87,19 +134,21 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(listOf(
-                Triple("Prayed Late", viewModel.prayedCount.value, R.drawable.prayedlate),
-                Triple("Not Prayed", viewModel.notPrayedCount.value, R.drawable.notprayed),
-                Triple("On Time", viewModel.onTimeCount.value, R.drawable.prayedontime),
-                Triple("In Jamaat", viewModel.jamatCount.value, R.drawable.jamat)
-            )) { (title, count, icon) ->
+            items(statColorConfigs) { (title, count, colors) ->
                 StatBoxWithPercentage(
                     title = title,
                     count = count,
                     total = viewModel.totalCounts.value,
-                    backgroundColor = MaterialTheme.colorScheme.primary, // CHANGED: Use primary color
-                    icon = icon,
-                    iconTint = MaterialTheme.colorScheme.onPrimary, // CHANGED: Use onPrimary
+                    backgroundColor = colors.backgroundColor,
+                    icon = when (title) {
+                        "Prayed Late" -> R.drawable.prayedlate
+                        "Not Prayed" -> R.drawable.notprayed
+                        "On Time" -> R.drawable.prayedontime
+                        "In Jamaat" -> R.drawable.jamat
+                        else -> R.drawable.prayedlate
+                    },
+                    iconTint = colors.iconTint,
+                    barColor = colors.barColor,
                     prayerCounts = when (title) {
                         "Prayed Late" -> prayedLateCounts
                         "Not Prayed" -> notPrayedCounts
@@ -125,67 +174,70 @@ fun StatBoxWithPercentage(
     backgroundColor: Color,
     icon: Int,
     iconTint: Color,
+    barColor: Color,
     prayerCounts: Map<String, Int> = mapOf(
         "Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0
     ),
     modifier: Modifier = Modifier
 ) {
     val percentage = if (total > 0) (count * 100) / total else 0
+
     Card(
         modifier = modifier
-            .height(200.dp)
+            .height(220.dp)
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(0.9f)
-                    .fillMaxHeight(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+            // Title Row
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = icon),
-                        contentDescription = title,
-                        tint = iconTint,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = iconTint // CHANGED: Match iconTint (onPrimary)
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
+                Icon(
+                    painter = painterResource(id = icon),
+                    contentDescription = title,
+                    tint = iconTint,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = iconTint
+                )
+            }
+
+            // Percentage + Count
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = "$percentage%",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = iconTint // CHANGED: Match iconTint
+                    color = iconTint
                 )
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "$count Times",
                     fontSize = 14.sp,
-                    color = iconTint // CHANGED: Match iconTint
+                    color = iconTint
                 )
             }
+
+            // Bar Chart
             PrayerBarChart(
                 prayerCounts = prayerCounts,
+                barColor = barColor,
                 modifier = Modifier
-                    .weight(1.1f)
-                    .padding(start = 8.dp)
+                    .fillMaxWidth()
+                    .height(80.dp)
             )
         }
     }
@@ -194,6 +246,7 @@ fun StatBoxWithPercentage(
 @Composable
 fun PrayerBarChart(
     prayerCounts: Map<String, Int>,
+    barColor: Color,
     modifier: Modifier = Modifier
 ) {
     val maxCount = (prayerCounts.values.maxOrNull() ?: 1).toFloat()
@@ -207,17 +260,11 @@ fun PrayerBarChart(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = name.take(3),
-                    color = MaterialTheme.colorScheme.onPrimary, // CHANGED: Use onPrimary
-                    fontSize = 12.sp,
-                    modifier = Modifier.width(45.dp)
-                )
                 Box(
                     modifier = Modifier
-                        .height(14.dp)
+                        .height(10.dp)
                         .fillMaxWidth(fraction = if (maxCount > 0) (count / maxCount).coerceAtLeast(0.1f) else 0.1f)
-                        .background(MaterialTheme.colorScheme.onPrimary, shape = RoundedCornerShape(4.dp))
+                        .background(barColor, shape = RoundedCornerShape(4.dp))
                 )
             }
         }
