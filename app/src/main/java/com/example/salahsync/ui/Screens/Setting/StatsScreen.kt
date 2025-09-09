@@ -4,6 +4,9 @@ import android.graphics.Color.rgb
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
@@ -47,10 +50,20 @@ import java.time.LocalDate
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
 import com.example.salahsync.R
 
 
+// Define a data class to hold color configurations for each stat
 // Define a data class to hold color configurations for each stat
 data class StatColors(
     val backgroundColor: Color,
@@ -73,8 +86,8 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             "Prayed Late",
             viewModel.prayedCount.value,
             StatColors(
-                backgroundColor = MaterialTheme.colorScheme.primary,
-                iconTint = MaterialTheme.colorScheme.onPrimary,
+                backgroundColor = Color(0xFF0288D1), // Blue
+                iconTint = Color(0xFFFFFFFF),
                 barColor = Color(0xFFFFA726) // Orange
             )
         ),
@@ -82,8 +95,8 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             "Not Prayed",
             viewModel.notPrayedCount.value,
             StatColors(
-                backgroundColor = MaterialTheme.colorScheme.error,
-                iconTint = MaterialTheme.colorScheme.onError,
+                backgroundColor = Color(0xFFD32F2F), // Red
+                iconTint = Color(0xFFFFFFFF),
                 barColor = Color(0xFFEF5350) // Red
             )
         ),
@@ -91,8 +104,8 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             "On Time",
             viewModel.onTimeCount.value,
             StatColors(
-                backgroundColor = MaterialTheme.colorScheme.secondary,
-                iconTint = MaterialTheme.colorScheme.onSecondary,
+                backgroundColor = Color(0xFF388E3C), // Green
+                iconTint = Color(0xFFFFFFFF),
                 barColor = Color(0xFF66BB6A) // Green
             )
         ),
@@ -100,12 +113,27 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             "In Jamaat",
             viewModel.jamatCount.value,
             StatColors(
-                backgroundColor = MaterialTheme.colorScheme.tertiary,
-                iconTint = MaterialTheme.colorScheme.onTertiary,
+                backgroundColor = Color(0xFF1976D2), // Dark Blue
+                iconTint = Color(0xFFFFFFFF),
                 barColor = Color(0xFF42A5F5) // Blue
             )
         )
     )
+
+    // State for selected tab (for styling only, non-functional for data)
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+
+    // Custom colors for tabs
+    val tabColors = listOf(
+        Color(0xFF26A69A), // Teal for Weeks
+        Color(0xFFAB47BC), // Purple for Months
+        Color(0xFFFF7043), // Coral for Years
+        Color(0xFF3F51B5)  // Indigo for All Time
+    )
+    val tabRowBackground = Color(0xFFF5F5F5) // Light Gray
+    val indicatorColor = Color(0xFFFFCA28) // Amber
+    val hoverColor = Color(0xFFE0F2F1) // Light Teal
+    val unselectedTextColor = Color(0xFF424242) // Dark Gray
 
     Scaffold(
         topBar = {
@@ -114,50 +142,105 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                     Text(
                         text = "Prayer Stats",
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color(0xFF212121) // Dark Gray for contrast
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = tabRowBackground,
+                    titleContentColor = Color(0xFF212121)
                 )
             )
         },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(statColorConfigs) { (title, count, colors) ->
-                StatBoxWithPercentage(
-                    title = title,
-                    count = count,
-                    total = viewModel.totalCounts.value,
-                    backgroundColor = colors.backgroundColor,
-                    icon = when (title) {
-                        "Prayed Late" -> R.drawable.prayedlate
-                        "Not Prayed" -> R.drawable.notprayed
-                        "On Time" -> R.drawable.prayedontime
-                        "In Jamaat" -> R.drawable.jamat
-                        else -> R.drawable.prayedlate
-                    },
-                    iconTint = colors.iconTint,
-                    barColor = colors.barColor,
-                    prayerCounts = when (title) {
-                        "Prayed Late" -> prayedLateCounts
-                        "Not Prayed" -> notPrayedCounts
-                        "On Time" -> onTimeCounts
-                        "In Jamaat" -> jamatCounts
-                        else -> emptyMap()
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+            // TabRow for Weeks, Months, Years, All Time
+            TabRow(
+                selectedTabIndex = selectedTabIndex,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(tabRowBackground),
+                containerColor = tabRowBackground,
+                contentColor = unselectedTextColor,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        modifier = Modifier
+                            .tabIndicatorOffset(tabPositions[selectedTabIndex])
+                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)),
+                        color = indicatorColor,
+                        height = 4.dp
+                    )
+                }
+            ) {
+                listOf("Weeks", "Months", "Years", "All Time").forEachIndexed { index, title ->
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val isFocused by interactionSource.collectIsFocusedAsState()
+
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = { selectedTabIndex = index }, // Update selected tab for styling
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                            .background(
+                                color = when {
+                                    selectedTabIndex == index -> tabColors[index].copy(alpha = 0.15f)
+                                    isFocused -> hoverColor
+                                    else -> Color.Transparent
+                                },
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .focusable()
+                            .height(48.dp),
+                        interactionSource = interactionSource,
+                        text = {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
+                                color = if (selectedTabIndex == index) tabColors[index] else unselectedTextColor
+                            )
+                        }
+                    )
+                }
+            }
+
+            // Stats Grid
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(statColorConfigs) { (title, count, colors) ->
+                    StatBoxWithPercentage(
+                        title = title,
+                        count = count,
+                        total = viewModel.totalCounts.value,
+                        backgroundColor = colors.backgroundColor,
+                        icon = when (title) {
+                            "Prayed Late" -> R.drawable.prayedlate
+                            "Not Prayed" -> R.drawable.notprayed
+                            "On Time" -> R.drawable.prayedontime
+                            "In Jamaat" -> R.drawable.jamat
+                            else -> R.drawable.prayedlate
+                        },
+                        iconTint = colors.iconTint,
+                        barColor = colors.barColor,
+                        prayerCounts = when (title) {
+                            "Prayed Late" -> prayedLateCounts
+                            "Not Prayed" -> notPrayedCounts
+                            "On Time" -> onTimeCounts
+                            "In Jamaat" -> jamatCounts
+                            else -> emptyMap()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }

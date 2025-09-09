@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.compose.navigation)
     implementation(libs.androidx.storage)
     implementation(libs.androidx.core.i18n)
+    implementation(libs.androidx.foundation.android)
     val room_version = "2.7.2"
 
 
