@@ -10,7 +10,6 @@ data class PrayerTilesData(
     val iconRes: Int,
     var selected: Boolean = false
 )
-
 val prayer = listOf(
     PrayerTilesData("Fajr", R.drawable.ic_fajr),
     PrayerTilesData("Dhuhr", R.drawable.ic_dhuhur),
@@ -18,5 +17,4 @@ val prayer = listOf(
     PrayerTilesData("Maghrib", R.drawable.ic_maghrib),
     PrayerTilesData("Isha", R.drawable.ic_esha)
 )
-
 

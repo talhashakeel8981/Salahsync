@@ -28,7 +28,9 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             AppDatabase::class.java,
             "prayer_db"
-        ).build()
+        )
+            .allowMainThreadQueries()  // NEW: Temporary for simple reads; remove in prod & use coroutines
+            .build()
         val dao = db.prayerDao()
         // CHANGED: Removed incorrect qualification `PrayerScreenViewModel.PrayerViewModelFactory`. Before: Used `PrayerScreenViewModel.PrayerViewModelFactory`, causing unresolved reference since the factory is not nested under `PrayerScreenViewModel`. After: Used `PrayerViewModelFactory` directly, matching the import and class definition.
         val factory = PrayerViewModelFactory(dao)

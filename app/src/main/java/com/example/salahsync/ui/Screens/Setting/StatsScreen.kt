@@ -55,6 +55,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,7 +71,6 @@ data class StatColors(
     val iconTint: Color,
     val barColor: Color
 )
-
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -79,7 +79,6 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
     val notPrayedCounts by viewModel.notPrayedCounts
     val onTimeCounts by viewModel.onTimeCounts
     val jamatCounts by viewModel.jamatCounts
-
     // Define color configurations for each stat
     val statColorConfigs = listOf(
         Triple(
@@ -119,22 +118,20 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             )
         )
     )
-
     // State for selected tab (for styling only, non-functional for data)
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-
     // Custom colors for tabs
     val tabColors = listOf(
         Color(0xFF26A69A), // Teal for Weeks
         Color(0xFFAB47BC), // Purple for Months
         Color(0xFFFF7043), // Coral for Years
-        Color(0xFF3F51B5)  // Indigo for All Time
+        Color(0xFF3F51B5) // Indigo for All Time
     )
+    val tabs = listOf("Week", "Month", "Year", "All Time") // Updated: Changed to singular "Week", "Month", "Year" to match user request; keeps structure.
     val tabRowBackground = Color(0xFFF5F5F5) // Light Gray
     val indicatorColor = Color(0xFFFFCA28) // Amber
     val hoverColor = Color(0xFFE0F2F1) // Light Teal
     val unselectedTextColor = Color(0xFF424242) // Dark Gray
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -176,10 +173,9 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                     )
                 }
             ) {
-                listOf("Weeks", "Months", "Years", "All Time").forEachIndexed { index, title ->
+                tabs.forEachIndexed { index, title -> // Updated: Use 'tabs' variable for consistency.
                     val interactionSource = remember { MutableInteractionSource() }
                     val isFocused by interactionSource.collectIsFocusedAsState()
-
                     Tab(
                         selected = selectedTabIndex == index,
                         onClick = { selectedTabIndex = index }, // Update selected tab for styling
@@ -206,7 +202,6 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                     )
                 }
             }
-
             // Stats Grid
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -244,11 +239,11 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             }
         }
     }
-    LaunchedEffect(Unit) {
-        viewModel.loadStats(LocalDate.now())
-    }
+    LaunchedEffect(selectedTabIndex) {
+        viewModel.loadStatsForPeriod(tabs[selectedTabIndex], LocalDate.now())
+    } // Updated: Added LaunchedEffect on selectedTabIndex to load period-specific data on tab change/initial. Why: Makes tabs functional; loads percentages and bars for the selected period.
+    // Removed: Original LaunchedEffect(Unit) { viewModel.loadStats(...) } - Replaced by tab-based loading.
 }
-
 @Composable
 fun StatBoxWithPercentage(
     title: String,
@@ -264,7 +259,6 @@ fun StatBoxWithPercentage(
     modifier: Modifier = Modifier
 ) {
     val percentage = if (total > 0) (count * 100) / total else 0
-
     Card(
         modifier = modifier
             .height(220.dp)
@@ -297,7 +291,6 @@ fun StatBoxWithPercentage(
                     color = iconTint
                 )
             }
-
             // Percentage + Count
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -313,7 +306,6 @@ fun StatBoxWithPercentage(
                     color = iconTint
                 )
             }
-
             // Bar Chart
             PrayerBarChart(
                 prayerCounts = prayerCounts,
@@ -325,7 +317,6 @@ fun StatBoxWithPercentage(
         }
     }
 }
-
 @Composable
 fun PrayerBarChart(
     prayerCounts: Map<String, Int>,

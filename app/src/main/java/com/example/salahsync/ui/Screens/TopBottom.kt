@@ -71,12 +71,14 @@ import java.util.Locale
 
 // ---------- TopBottom.kt (fixed) ----------
 
+
+
+// ---------- TopBottom.kt (fixed) ----------
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TopBottom(viewModel: PrayerScreenViewModel,startDestination: String = "home") {
     val bottomNavController = rememberNavController()
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
-
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(1f)) {
             NavHost(
@@ -91,10 +93,8 @@ fun TopBottom(viewModel: PrayerScreenViewModel,startDestination: String = "home"
                         }
                     }
                 }
-
                 // Updated to pass viewModel to StatisticsScreen
                 // COMMENT: Ensures the Stats screen can access the ViewModel for data
-
                 composable("stats") { StatsScreen(viewModel) }
                 composable("settings") { SettingsNavHost() }
             }
@@ -102,7 +102,6 @@ fun TopBottom(viewModel: PrayerScreenViewModel,startDestination: String = "home"
         SalahBottomBar(bottomNavController)
     }
 }
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SalahTopBar(
@@ -133,12 +132,10 @@ fun SalahTopBar(
         )
     }
 }
-
 @RequiresApi(Build.VERSION_CODES.O)
 fun getHijriDate(date: LocalDate): String {
     // Convert LocalDate to HijrahDate (Islamic Umm Al-Qura calendar)
     val hijrahDate = HijrahDate.from(date)
-
     // Format the Hijri date (e.g., "2 Rabi‘ al-awwal 1447")
     val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("en"))
     return hijrahDate.format(formatter)
@@ -151,10 +148,9 @@ fun DateSlider(
 ) {
     val today = LocalDate.now()
     val totalPastDays = 50000 // Days backward allowed
-    val maxFutureDays = 4      // Days forward allowed
+    val maxFutureDays = 4 // Days forward allowed
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-
     // Ensure the LazyRow scrolls to the selected date on initial load
     LaunchedEffect(selectedDate) {
         val index = (totalPastDays + selectedDate.toEpochDay() - today.toEpochDay()).toInt()
@@ -162,7 +158,6 @@ fun DateSlider(
             lazyListState.scrollToItem(index)
         }
     }
-
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -203,7 +198,6 @@ fun DateSlider(
                 )
             }
         }
-
         // LazyRow for dates
         LazyRow(
             modifier = Modifier
@@ -215,7 +209,6 @@ fun DateSlider(
             items(totalPastDays + maxFutureDays + 1) { listIndex ->
                 val dayOffsetFromStart = listIndex.toLong()
                 val currentDate = today.minusDays(totalPastDays.toLong()).plusDays(dayOffsetFromStart)
-
                 // Only show dates up to maxFutureDays in the future
                 if (!currentDate.isAfter(today.plusDays(maxFutureDays.toLong()))) {
                     val isSelected = currentDate == selectedDate
@@ -264,7 +257,6 @@ fun DateSlider(
                 }
             }
         }
-
         // Right arrow button
         IconButton(
             onClick = {
@@ -308,7 +300,6 @@ fun formatDateLabel(date: LocalDate): String {
     val today = LocalDate.now()
     val yesterday = today.minusDays(1)
     val tomorrow=today.plusDays(1)
-
     return when (date) {
         today -> "Today, ${date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))}"
         yesterday -> "Yesterday, ${date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))}"
@@ -316,7 +307,6 @@ fun formatDateLabel(date: LocalDate): String {
         else -> date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
     }
 }
-
 @Composable
 fun SalahBottomBar(navController: NavController) {
     NavigationBar(
@@ -348,7 +338,6 @@ fun SalahBottomBar(navController: NavController) {
         )
     }
 }
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview
@@ -358,4 +347,3 @@ fun SalahTopBarPreview() {
         onDateSelected = { /* No-op for preview */ }
     )
 }
-

@@ -35,16 +35,22 @@ import androidx.compose.foundation.lazy.grid.items // CHANGED: Explicitly import
 import androidx.compose.ui.layout.ContentScale
 import android.view.SoundEffectConstants
 import androidx.compose.ui.platform.LocalView
-private val PrimaryBlue = Color(0xFF007AFF) // Replaces Color(0, 122, 255)
-private val BackgroundLightGray = Color(0xFFF3F5F8) // Replaces Color(243, 245, 248)
-private val CardBackgroundGray = Color(0xFFF5F5F5) // Replaces Color(245, 245, 245)
 
 
+
+// 🎨 Colors
+private val PrimaryBlue = Color(0xFF007AFF)
+private val BackgroundLightGray = Color(0xFFF3F5F8)
+private val CardBackgroundGray = Color(0xFFF5F5F5)
+
+//  FIX: Remove static prayerStatusImages → handled by ViewModel state instead
+
+// Updated: Removed static val prayerStatusImages = mapOf(...). Why: Hardcoded keys (e.g., "done") don't match prayer names (e.g., "Fajr"), causing fallback to invisible R.drawable.ic_launcher_background; now use dynamic ViewModel state for correct mapping after save.
 
 @Composable
 fun PrayerList(
     prayers: List<PrayerTilesData>,
-    prayerStatusImages: Map<String, Int>,
+    statusImages: Map<String, Int>, // Updated: Renamed parameter to statusImages for clarity; now expects dynamic map from ViewModel (prayerName → statusRes).
     onPrayerClick: (PrayerTilesData) -> Unit
 ) {
     val view = LocalView.current
@@ -81,7 +87,7 @@ fun PrayerList(
                         modifier = Modifier.weight(1f),
                         fontSize = 20.sp
                     )
-                    val statusIcon = prayerStatusImages[prayer.name] ?: R.drawable.ic_launcher_background
+                    val statusIcon = statusImages[prayer.name] ?: R.drawable.ic_launcher_background // Updated: Now uses dynamic statusImages map, so selected status (e.g., R.drawable.notprayed for "Fajr") shows correctly after save; fallback only if no data.
                     Image(
                         painter = painterResource(id = statusIcon),
                         contentDescription = "Prayer Status",
@@ -100,13 +106,12 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
     var selectedPrayer by remember { mutableStateOf<PrayerTilesData?>(null) }
-    val prayerStatusImages by viewModel.prayerStatusImages
+    val statusImages by viewModel.prayerStatusImages // Updated: Observe the dynamic state from ViewModel to get latest status icons after load/save.
 
     LaunchedEffect(value) {
         viewModel.loadPrayers(value)
-        viewModel.loadStats(value) // Ensures global stats for StatsScreen
+        // Updated: Removed viewModel.loadStats(value). Why: Fixes "Unresolved reference 'loadStats'" error—original loadStats was replaced by loadStatsForPeriod in ViewModel for tab-based period loading; this call is redundant as StatsScreen loads its own data independently. PrayerScreen only needs daily prayer data.
     }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -115,12 +120,11 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
     ) {
         PrayerList(
             prayers = prayer, // Use global 'prayer' from PrayerTilesData.kt
-            prayerStatusImages = prayerStatusImages
+            statusImages = statusImages // Updated: Pass dynamic statusImages from ViewModel instead of static map. Why: Ensures selected status icons update and show visibly in the list after bottom sheet selection/save.
         ) { clickedPrayer ->
             selectedPrayer = clickedPrayer
             coroutineScope.launch { sheetState.show() }
         }
-
         if (sheetState.isVisible && selectedPrayer != null) {
             ModalBottomSheet(
                 onDismissRequest = {
@@ -174,7 +178,6 @@ fun PrayerStatusGrid(
         Triple("On Time", R.drawable.prayedontime, Color(0xFFFFD92E)),
         Triple("In Jamaat", R.drawable.jamat, Color(0xFF1DD1A1))
     )
-
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -204,10 +207,11 @@ fun PrayerStatusGrid(
                     painter = painterResource(id = icon),
                     contentDescription = title,
                     modifier = Modifier.size(40.dp),
-                    colorFilter = ColorFilter.tint(tint)
+                    // Updated: Removed colorFilter = ColorFilter.tint(tint) to show original icon colors (e.g., red for not prayed); prevents invisibility on gray background. Why: Tinting (e.g., black on gray) hides icons; matches prayer list rendering.
+                    contentScale = ContentScale.Fit
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = title, fontSize = 14.sp)
+                Text(text = title, fontSize = 14.sp, color = tint) // Updated: Apply tint to text instead for color coding without hiding icons.
             }
         }
     }
