@@ -87,13 +87,23 @@ fun PrayerList(
                         modifier = Modifier.weight(1f),
                         fontSize = 20.sp
                     )
-                    val statusIcon = statusImages[prayer.name] ?: R.drawable.ic_launcher_background // Updated: Now uses dynamic statusImages map, so selected status (e.g., R.drawable.notprayed for "Fajr") shows correctly after save; fallback only if no data.
-                    Image(
-                        painter = painterResource(id = statusIcon),
-                        contentDescription = "Prayer Status",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    val statusIcon = statusImages[prayer.name]
+
+                    if (statusIcon != null) {
+                        Image(
+                            painter = painterResource(id = statusIcon),
+                            contentDescription = "Prayer Status",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    } else {
+                        // Keeps size but stays transparent
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(Color.Transparent)
+                        )
+                    }
                 }
             }
         }
