@@ -70,7 +70,7 @@ fun PrayerList(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.surface) // ✅ dynamic background
                         .padding(vertical = 12.dp, horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -85,7 +85,8 @@ fun PrayerList(
                     Text(
                         text = prayer.name,
                         modifier = Modifier.weight(1f),
-                        fontSize = 20.sp
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface // ✅ adapts to dark mode
                     )
                     val statusIcon = statusImages[prayer.name]
 
@@ -126,7 +127,8 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 10.dp)
-            .background(BackgroundLightGray)
+            .background(MaterialTheme.colorScheme.background) // ✅ theme-based background
+
     ) {
         PrayerList(
             prayers = prayer, // Use global 'prayer' from PrayerTilesData.kt
@@ -140,7 +142,9 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                 onDismissRequest = {
                     coroutineScope.launch { sheetState.hide() }
                 },
-                sheetState = sheetState
+                sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.surface // ✅ sheet color adapts to dark/light
+
             ) {
                 Column(
                     modifier = Modifier
@@ -159,7 +163,9 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                     )
                     Text(
                         text = "How did you complete ${selectedPrayer?.name} today?",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface // ✅ readable in both themes
+
                     )
                     PrayerStatusGrid(
                         selectedPrayer = selectedPrayer!!,
@@ -200,7 +206,7 @@ fun PrayerStatusGrid(
             Column(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(CardBackgroundGray) // CHANGED: Use defined constant
+                    .background(MaterialTheme.colorScheme.surface) // ✅ dynamic surface background
                     .clickable {
                         viewModel.savePrayerStatus(
                             selectedPrayer.name,
@@ -221,7 +227,11 @@ fun PrayerStatusGrid(
                     contentScale = ContentScale.Fit
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = title, fontSize = 14.sp, color = tint) // Updated: Apply tint to text instead for color coding without hiding icons.
+                Text(
+                    text = title,
+                    fontSize = 14.sp,
+                    color = tint // ✅ keeps status text colored
+                )
             }
         }
     }

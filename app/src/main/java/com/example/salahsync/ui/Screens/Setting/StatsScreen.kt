@@ -71,6 +71,7 @@ data class StatColors(
     val iconTint: Color,
     val barColor: Color
 )
+
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -79,59 +80,59 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
     val notPrayedCounts by viewModel.notPrayedCounts
     val onTimeCounts by viewModel.onTimeCounts
     val jamatCounts by viewModel.jamatCounts
-    // Define color configurations for each stat
+
+    // ✅ Theme-aware color configs
     val statColorConfigs = listOf(
         Triple(
             "Prayed Late",
             viewModel.prayedCount.value,
             StatColors(
-                backgroundColor = Color(0xFF0288D1), // Blue
-                iconTint = Color(0xFFFFFFFF),
-                barColor = Color(0xFFFFA726) // Orange
+                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
+                barColor = MaterialTheme.colorScheme.secondary
             )
         ),
         Triple(
             "Not Prayed",
             viewModel.notPrayedCount.value,
             StatColors(
-                backgroundColor = Color(0xFFD32F2F), // Red
-                iconTint = Color(0xFFFFFFFF),
-                barColor = Color(0xFFEF5350) // Red
+                backgroundColor = MaterialTheme.colorScheme.errorContainer,
+                iconTint = MaterialTheme.colorScheme.onErrorContainer,
+                barColor = MaterialTheme.colorScheme.error
             )
         ),
         Triple(
             "On Time",
             viewModel.onTimeCount.value,
             StatColors(
-                backgroundColor = Color(0xFF388E3C), // Green
-                iconTint = Color(0xFFFFFFFF),
-                barColor = Color(0xFF66BB6A) // Green
+                backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+                iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
+                barColor = MaterialTheme.colorScheme.tertiary
             )
         ),
         Triple(
             "In Jamaat",
             viewModel.jamatCount.value,
             StatColors(
-                backgroundColor = Color(0xFF1976D2), // Dark Blue
-                iconTint = Color(0xFFFFFFFF),
-                barColor = Color(0xFF42A5F5) // Blue
+                backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
+                barColor = MaterialTheme.colorScheme.primary
             )
         )
     )
+
     // State for selected tab (for styling only, non-functional for data)
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    // Custom colors for tabs
+
+    // ✅ Tabs will also adapt to dark mode
     val tabColors = listOf(
-        Color(0xFF26A69A), // Teal for Weeks
-        Color(0xFFAB47BC), // Purple for Months
-        Color(0xFFFF7043), // Coral for Years
-        Color(0xFF3F51B5) // Indigo for All Time
+        MaterialTheme.colorScheme.primary,
+        MaterialTheme.colorScheme.secondary,
+        MaterialTheme.colorScheme.tertiary,
+        MaterialTheme.colorScheme.inversePrimary
     )
-    val tabs = listOf("Week", "Month", "Year", "All Time") // Updated: Changed to singular "Week", "Month", "Year" to match user request; keeps structure.
-    val tabRowBackground = Color(0xFFF5F5F5) // Light Gray
-    val indicatorColor = Color(0xFFFFCA28) // Amber
-    val hoverColor = Color(0xFFE0F2F1) // Light Teal
-    val unselectedTextColor = Color(0xFF424242) // Dark Gray
+    val tabs = listOf("Week", "Month", "Year", "All Time")
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -139,12 +140,12 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                     Text(
                         text = "Prayer Stats",
                         style = MaterialTheme.typography.titleLarge,
-                        color = Color(0xFF212121) // Dark Gray for contrast
+                        color = MaterialTheme.colorScheme.onSurface // ✅ adapts automatically
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = tabRowBackground,
-                    titleContentColor = Color(0xFF212121)
+                    containerColor = MaterialTheme.colorScheme.surface, // ✅ background follows theme
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
@@ -155,36 +156,34 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // TabRow for Weeks, Months, Years, All Time
+            // ✅ TabRow updated to use theme colors
             TabRow(
                 selectedTabIndex = selectedTabIndex,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(tabRowBackground),
-                containerColor = tabRowBackground,
-                contentColor = unselectedTextColor,
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 indicator = { tabPositions ->
                     TabRowDefaults.Indicator(
                         modifier = Modifier
                             .tabIndicatorOffset(tabPositions[selectedTabIndex])
                             .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)),
-                        color = indicatorColor,
+                        color = MaterialTheme.colorScheme.primary,
                         height = 4.dp
                     )
                 }
             ) {
-                tabs.forEachIndexed { index, title -> // Updated: Use 'tabs' variable for consistency.
+                tabs.forEachIndexed { index, title ->
                     val interactionSource = remember { MutableInteractionSource() }
                     val isFocused by interactionSource.collectIsFocusedAsState()
                     Tab(
                         selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index }, // Update selected tab for styling
+                        onClick = { selectedTabIndex = index },
                         modifier = Modifier
                             .padding(horizontal = 10.dp, vertical = 15.dp)
                             .background(
                                 color = when {
                                     selectedTabIndex == index -> tabColors[index].copy(alpha = 0.15f)
-                                    isFocused -> hoverColor
+                                    isFocused -> MaterialTheme.colorScheme.surfaceVariant
                                     else -> Color.Transparent
                                 },
                                 shape = RoundedCornerShape(10.dp)
@@ -196,12 +195,13 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                             Text(
                                 text = title,
                                 style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp),
-                                color = if (selectedTabIndex == index) tabColors[index] else unselectedTextColor
+                                color = if (selectedTabIndex == index) tabColors[index] else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     )
                 }
             }
+
             // Stats Grid
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -239,11 +239,13 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             }
         }
     }
+
+    // ✅ Loads stats when tab changes
     LaunchedEffect(selectedTabIndex) {
         viewModel.loadStatsForPeriod(tabs[selectedTabIndex], LocalDate.now())
-    } // Updated: Added LaunchedEffect on selectedTabIndex to load period-specific data on tab change/initial. Why: Makes tabs functional; loads percentages and bars for the selected period.
-    // Removed: Original LaunchedEffect(Unit) { viewModel.loadStats(...) } - Replaced by tab-based loading.
+    }
 }
+
 @Composable
 fun StatBoxWithPercentage(
     title: String,
@@ -292,9 +294,7 @@ fun StatBoxWithPercentage(
                 )
             }
             // Percentage + Count
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = "$percentage%",
                     style = MaterialTheme.typography.headlineMedium,
@@ -317,6 +317,7 @@ fun StatBoxWithPercentage(
         }
     }
 }
+
 @Composable
 fun PrayerBarChart(
     prayerCounts: Map<String, Int>,
@@ -331,9 +332,7 @@ fun PrayerBarChart(
     ) {
         fixedPrayerOrder.forEach { name ->
             val count = prayerCounts[name] ?: 0
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
                         .height(10.dp)

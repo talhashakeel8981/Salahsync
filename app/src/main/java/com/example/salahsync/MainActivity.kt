@@ -12,13 +12,15 @@ import androidx.room.Room
 import com.example.salahsync.DataBase.AppDatabase
 import com.example.salahsync.ui.Screens.PrayerScreenViewModel
 import com.example.salahsync.ui.Screens.PrayerViewModelFactory
-import com.example.salahsync.ui.Screens.Setting.Appearence.AppTheme
+//import com.example.salahsync.ui.Screens.Setting.Appearence.AppTheme
 //import com.example.salahsync.ui.Screens.Setting.Appearence.
-import com.example.salahsync.ui.Screens.Setting.Appearence.ThemeControl
+//import com.example.salahsync.ui.Screens.Setting.Appearence.ThemeControl
 import com.example.salahsync.ui.Screens.SettingsOptions.NotificationScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
 
 import androidx.compose.ui.Modifier
+import com.example.salahsync.ui.theme.SalahSyncTheme
+
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,10 +31,10 @@ class MainActivity : ComponentActivity() {
             AppDatabase::class.java,
             "prayer_db"
         )
-            .allowMainThreadQueries()  // NEW: Temporary for simple reads; remove in prod & use coroutines
+            .allowMainThreadQueries()
             .build()
+
         val dao = db.prayerDao()
-        // CHANGED: Removed incorrect qualification `PrayerScreenViewModel.PrayerViewModelFactory`. Before: Used `PrayerScreenViewModel.PrayerViewModelFactory`, causing unresolved reference since the factory is not nested under `PrayerScreenViewModel`. After: Used `PrayerViewModelFactory` directly, matching the import and class definition.
         val factory = PrayerViewModelFactory(dao)
         val viewModel = ViewModelProvider(this, factory)[PrayerScreenViewModel::class.java]
 
@@ -40,13 +42,11 @@ class MainActivity : ComponentActivity() {
         val navigateTo = intent.getStringExtra("navigateTo")
 
         setContent {
-            ThemeControl(viewModel = viewModel) { selectedTheme, _ ->
-                AppTheme(themeMode = selectedTheme) {
-                    TopBottom(
-                        viewModel = viewModel,
-                        startDestination = if (navigateTo == "prayer") "prayerScreen" else "home"
-                    )
-                }
+            SalahSyncTheme {   // App now supports Dark/Light mode
+                TopBottom(
+                    viewModel = viewModel,
+                    startDestination = if (navigateTo == "prayer") "prayerScreen" else "home"
+                )
             }
         }
     }

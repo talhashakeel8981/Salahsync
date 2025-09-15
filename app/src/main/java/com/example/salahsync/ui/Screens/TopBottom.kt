@@ -111,18 +111,21 @@ fun SalahTopBar(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            // CHANGED: from Color.White -> MaterialTheme.colorScheme.surface
+            .background(MaterialTheme.colorScheme.surface)
             .padding(8.dp, top = 33.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = formatDateLabel(selectedDate),
-            color = Color.Black,
+            // CHANGED: from Color.Black -> MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 18.sp
         )
         Text(
-            text = getHijriDate(selectedDate), // Placeholder
-            color = Color.Black,
+            text = getHijriDate(selectedDate),
+            // CHANGED: from Color.Black -> MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -223,9 +226,10 @@ fun DateSlider(
                             )
                             .background(
                                 when {
-                                    isSelected -> Color(0, 122, 255) // Filled blue for selected
-                                    isToday -> Color.Transparent // Transparent for today (only border)
-                                    else -> Color(255, 255, 255) // White for others
+                                    isSelected -> Color(0, 122, 255) // keep brand blue ✅
+                                    isToday -> Color.Transparent
+                                    // CHANGED: from Color(255,255,255) -> MaterialTheme.colorScheme.surface
+                                    else -> MaterialTheme.colorScheme.surface
                                 }
                             )
                             .then(
@@ -246,12 +250,14 @@ fun DateSlider(
                         Text(
                             text = currentDate.dayOfWeek.name.take(3),
                             fontSize = 9.sp,
-                            color = if (isSelected || isToday) Color.White else Color(176, 176, 179)
+                            // CHANGED: from Color(176,176,179) -> MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (isSelected || isToday) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = currentDate.dayOfMonth.toString(),
                             fontSize = 9.sp,
-                            color = if (isSelected || isToday) Color.White else Color.Black
+                            // CHANGED: from Color.Black -> MaterialTheme.colorScheme.onSurface
+                            color = if (isSelected || isToday) Color.White else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -310,14 +316,16 @@ fun formatDateLabel(date: LocalDate): String {
 @Composable
 fun SalahBottomBar(navController: NavController) {
     NavigationBar(
-        containerColor = Color.White
+        // CHANGED: from Color.White -> MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         NavigationBarItem(
             icon = { Icon(painterResource(id = R.drawable.home), contentDescription = "Home", modifier = Modifier.size(20.dp)) },
             selected = false,
             onClick = { navController.navigate("prayer") },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF9EA3A9)
+                // CHANGED: selectedIconColor from hardcoded gray -> MaterialTheme.colorScheme.primary
+                selectedIconColor = MaterialTheme.colorScheme.primary
             )
         )
         NavigationBarItem(
@@ -325,7 +333,7 @@ fun SalahBottomBar(navController: NavController) {
             selected = false,
             onClick = { navController.navigate("stats") },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF9EA3A9)
+                selectedIconColor = MaterialTheme.colorScheme.primary
             )
         )
         NavigationBarItem(
@@ -333,7 +341,7 @@ fun SalahBottomBar(navController: NavController) {
             selected = false,
             onClick = { navController.navigate("settings") },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF9EA3A9)
+                selectedIconColor = MaterialTheme.colorScheme.primary
             )
         )
     }
