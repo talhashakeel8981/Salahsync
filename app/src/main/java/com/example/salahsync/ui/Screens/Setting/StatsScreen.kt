@@ -180,7 +180,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                         selected = selectedTabIndex == index,
                         onClick = { selectedTabIndex = index }, // Update selected tab for styling
                         modifier = Modifier
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                            .padding(horizontal = 10.dp, vertical = 15.dp)
                             .background(
                                 color = when {
                                     selectedTabIndex == index -> tabColors[index].copy(alpha = 0.15f)
@@ -190,12 +190,12 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                                 shape = RoundedCornerShape(10.dp)
                             )
                             .focusable()
-                            .height(48.dp),
+                            .height(45.dp),
                         interactionSource = interactionSource,
                         text = {
                             Text(
                                 text = title,
-                                style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
+                                style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp),
                                 color = if (selectedTabIndex == index) tabColors[index] else unselectedTextColor
                             )
                         }
