@@ -18,31 +18,32 @@ import androidx.compose.ui.graphics.Color
 
 // 🌙 Dark mode colors
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFF90CAF9),     // Light Blue
-    secondary = Color(0xFF80CBC4),   // Teal
-    tertiary = Color(0xFFCE93D8),    // Purple
-    background = Color(0xFF121212),  // Pure dark background
-    surface = Color(0xFF1E1E1E),     // Slightly lighter surface
-    onPrimary = Color.Black,
-    onSecondary = Color.Black,
-    onTertiary = Color.Black,
-    onBackground = Color.White,
-    onSurface = Color.White
+    primary = Color(0xFF0288D1),     // Vibrant blue for a striking primary
+    secondary = Color(0xFF4CAF50),   // Green for a natural secondary
+    tertiary = Color(0xFF4FC3F7),    // Bright cyan for accents
+    background = Color(0xFF0D1B2A),  // Dark blue, as specified
+    surface = Color(0xFF1B263B),     // Slightly lighter blue for surfaces
+    onPrimary = Color.White,         // White for contrast on blue
+    onSecondary = Color.White,       // White for contrast on green
+    onTertiary = Color.Black,        // Black for contrast on bright cyan
+    onBackground = Color(0xFFB3E5FC), // Light blue for text on background
+    onSurface = Color(0xFFB3E5FC)    // Light blue for text on surface
 )
 
 // ☀️ Light mode colors
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF1976D2),     // Blue
-    secondary = Color(0xFF009688),   // Teal
-    tertiary = Color(0xFF9C27B0),    // Purple
-    background = Color(0xFFFFFFFF),  // White
-    surface = Color(0xFFF5F5F5),     // Light grey
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color.Black,
-    onSurface = Color.Black
+    primary = Color(0xFF0D47A1),     // Deep blue for a bold, vibrant primary
+    secondary = Color(0xFF0277BD),   // Medium blue for a cohesive secondary
+    tertiary = Color(0xFF42A5F5),    // Bright sky blue for striking accents
+    background = Color(0xFFE1F5FE),  // Light blue background for blue cohesion
+    surface = Color(0xFFE8F6FD),     // Very light blue for surfaces
+    onPrimary = Color.White,         // White for contrast on deep blue
+    onSecondary = Color.White,       // White for contrast on medium blue
+    onTertiary = Color.White,        // White for contrast on sky blue
+    onBackground = Color(0xFF0D1B2A), // Dark blue, as specified, for text
+    onSurface = Color(0xFF0D1B2A)    // Dark blue, as specified, for surface text
 )
+
 
 @Composable
 fun SalahSyncTheme(
