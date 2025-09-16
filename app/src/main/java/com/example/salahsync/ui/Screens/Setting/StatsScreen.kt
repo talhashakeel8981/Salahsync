@@ -81,15 +81,34 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
     val onTimeCounts by viewModel.onTimeCounts
     val jamatCounts by viewModel.jamatCounts
 
-    // ✅ Theme-aware color configs
+    // ✅ Theme-aware color configs (Reordered + Meaningful colors)
+    // ✅ Custom icon colors applied for all statuses (background + bar remain theme-based)
     val statColorConfigs = listOf(
+        Triple(
+            "In Jamaat",
+            viewModel.jamatCount.value,
+            StatColors(
+                backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                iconTint = Color(0xFF1DD1A1), // ✅ Fixed green for Jamaat
+                barColor = MaterialTheme.colorScheme.secondary
+            )
+        ),
+        Triple(
+            "On Time",
+            viewModel.onTimeCount.value,
+            StatColors(
+                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                iconTint = Color(0xFFFFD92E), // ✅ Fixed yellow for On Time
+                barColor = MaterialTheme.colorScheme.primary
+            )
+        ),
         Triple(
             "Prayed Late",
             viewModel.prayedCount.value,
             StatColors(
-                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
-                barColor = MaterialTheme.colorScheme.secondary
+                backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+                iconTint = Color(0xFFD64F73), // ✅ Fixed pink/red for Prayed Late
+                barColor = MaterialTheme.colorScheme.tertiary
             )
         ),
         Triple(
@@ -97,30 +116,11 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             viewModel.notPrayedCount.value,
             StatColors(
                 backgroundColor = MaterialTheme.colorScheme.errorContainer,
-                iconTint = MaterialTheme.colorScheme.onErrorContainer,
+                iconTint = Color(0xFF000000), // ✅ Fixed black for Not Prayed
                 barColor = MaterialTheme.colorScheme.error
-            )
-        ),
-        Triple(
-            "On Time",
-            viewModel.onTimeCount.value,
-            StatColors(
-                backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
-                iconTint = MaterialTheme.colorScheme.onTertiaryContainer,
-                barColor = MaterialTheme.colorScheme.tertiary
-            )
-        ),
-        Triple(
-            "In Jamaat",
-            viewModel.jamatCount.value,
-            StatColors(
-                backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                iconTint = MaterialTheme.colorScheme.onSecondaryContainer,
-                barColor = MaterialTheme.colorScheme.primary
             )
         )
     )
-
     // State for selected tab (for styling only, non-functional for data)
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 

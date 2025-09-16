@@ -113,7 +113,7 @@ fun SalahTopBar(
             .fillMaxWidth()
             // CHANGED: from Color.White -> MaterialTheme.colorScheme.surface
             .background(MaterialTheme.colorScheme.surface)
-            .padding(8.dp, top = 33.dp),
+            .padding(2.dp, top = 33.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -196,8 +196,9 @@ fun DateSlider(
                 Icon(
                     painter = painterResource(id = R.drawable.previous),
                     contentDescription = "Previous Row",
-                    tint = Color.White,
+                    tint = Color.Blue,
                     modifier = Modifier.size(20.dp)
+                        .padding(start = 3.dp)
                 )
             }
         }
@@ -250,14 +251,20 @@ fun DateSlider(
                         Text(
                             text = currentDate.dayOfWeek.name.take(3),
                             fontSize = 9.sp,
-                            // CHANGED: from Color(176,176,179) -> MaterialTheme.colorScheme.onSurfaceVariant
-                            color = if (isSelected || isToday) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = when {
+                                isSelected -> Color.White // Blue bg → White text
+                                isToday -> Color(0, 122, 255) // Today border → Brand blue text
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant // Adaptive for light/dark
+                            }
                         )
                         Text(
                             text = currentDate.dayOfMonth.toString(),
                             fontSize = 9.sp,
-                            // CHANGED: from Color.Black -> MaterialTheme.colorScheme.onSurface
-                            color = if (isSelected || isToday) Color.White else MaterialTheme.colorScheme.onSurface
+                            color = when {
+                                isSelected -> Color.White // Blue bg → White text
+                                isToday -> Color(0, 122, 255) // Today border → Brand blue text
+                                else -> MaterialTheme.colorScheme.onSurface // Adaptive for light/dark
+                            }
                         )
                     }
                 }

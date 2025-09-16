@@ -126,7 +126,7 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 10.dp)
+            .padding(top = 0.dp)
             .background(MaterialTheme.colorScheme.background) // ✅ theme-based background
 
     ) {
