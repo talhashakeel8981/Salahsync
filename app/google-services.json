@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1009009186786",
+    "project_id": "salahsync-ddd4d",
+    "storage_bucket": "salahsync-ddd4d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1009009186786:android:84ed45431e72f7f9cf0bbb",
+        "android_client_info": {
+          "package_name": "com.example.salahsync"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAz-NiHb9QOACnncKxNbrTycf86uRRKq6g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

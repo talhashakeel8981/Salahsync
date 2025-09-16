@@ -3,6 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
+    id("com.google.gms.google-services") version "4.4.2" apply false
+
+
 }
 
 
@@ -39,6 +42,16 @@ android {
         compose = true
     }
 }
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Firebase / Google Services plugin
+        classpath("com.google.gms:google-services:4.4.2")
+    }
+}
 
 dependencies {
     implementation(libs.androidx.contentpager)
@@ -69,6 +82,12 @@ dependencies {
     implementation(libs.androidx.benchmark.traceprocessor.android)
     implementation(libs.androidx.navigation.compose.android)
     implementation(libs.androidx.foundation.layout.android)
+    // Firebase BOM (Bill of Materials) - version handle karega
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+
+// Firestore
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
 
 
     testImplementation(libs.junit)
@@ -78,4 +97,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+
 }
