@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
-    id("com.google.gms.google-services") version "4.4.2" apply false
+    id("com.google.gms.google-services")
 
 
 }
@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.storage)
     implementation(libs.androidx.core.i18n)
     implementation(libs.androidx.foundation.android)
+    implementation(libs.firebase.database)
     val room_version = "2.7.2"
 
 
@@ -84,6 +85,8 @@ dependencies {
     implementation(libs.androidx.foundation.layout.android)
     // Firebase BOM (Bill of Materials) - version handle karega
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+
+
 
 // Firestore
     implementation("com.google.firebase:firebase-firestore-ktx")

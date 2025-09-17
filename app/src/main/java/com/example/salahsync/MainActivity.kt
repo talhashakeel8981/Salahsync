@@ -19,35 +19,49 @@ import com.example.salahsync.ui.Screens.SettingsOptions.NotificationScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
 
 import androidx.compose.ui.Modifier
+import com.example.salahsync.ui.Screens.FirebaseSyncCheck
+import com.example.salahsync.ui.Screens.testFirebase
 import com.example.salahsync.ui.theme.SalahSyncTheme
 
+//class MainActivity : ComponentActivity() {
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//
+//        val db = Room.databaseBuilder(
+//            applicationContext,
+//            AppDatabase::class.java,
+//            "prayer_db"
+//        )
+//            .allowMainThreadQueries()
+//            .build()
+//
+//        val dao = db.prayerDao()
+//        val factory = PrayerViewModelFactory(dao)
+//        val viewModel = ViewModelProvider(this, factory)[PrayerScreenViewModel::class.java]
+//
+//        // Read flag from notification
+//        val navigateTo = intent.getStringExtra("navigateTo")
+//
+//        setContent {
+//            SalahSyncTheme {   // App now supports Dark/Light mode
+//                TopBottom(
+//                    viewModel = viewModel,
+//                    startDestination = if (navigateTo == "prayer") "prayerScreen" else "home"
+//                )
+//            }
+//        }
+//    }
+//}
+
 class MainActivity : ComponentActivity() {
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java,
-            "prayer_db"
-        )
-            .allowMainThreadQueries()
-            .build()
-
-        val dao = db.prayerDao()
-        val factory = PrayerViewModelFactory(dao)
-        val viewModel = ViewModelProvider(this, factory)[PrayerScreenViewModel::class.java]
-
-        // Read flag from notification
-        val navigateTo = intent.getStringExtra("navigateTo")
-
         setContent {
-            SalahSyncTheme {   // App now supports Dark/Light mode
-                TopBottom(
-                    viewModel = viewModel,
-                    startDestination = if (navigateTo == "prayer") "prayerScreen" else "home"
-                )
-            }
+            FirebaseSyncCheck() // UI wali check
         }
+
+        testFirebase() // Background me ek aur test
     }
 }
