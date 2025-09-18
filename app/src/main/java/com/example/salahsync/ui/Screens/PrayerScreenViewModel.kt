@@ -55,6 +55,18 @@ class PrayerScreenViewModel(private val dao: PrayerDao) : ViewModel() {
     private val _jamatCounts = mutableStateOf<Map<String, Int>>(mapOf("Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0))
     val jamatCounts: State<Map<String, Int>> = _jamatCounts
     private val prayerSelections = mutableMapOf<String, Int>()
+    // NEW: Add prayers state for PrayerScreen
+    private val _prayers = mutableStateOf(
+        listOf(
+            PrayerTilesData("Fajr", R.drawable.ic_fajr),
+            PrayerTilesData("Dhuhr", R.drawable.ic_dhuhur),
+            PrayerTilesData("Asr", R.drawable.ic_asr),
+            PrayerTilesData("Maghrib", R.drawable.ic_maghrib),
+            PrayerTilesData("Isha", R.drawable.ic_esha)
+        )
+    )
+    val prayers: State<List<PrayerTilesData>> = _prayers
+
     fun loadPrayers(date: LocalDate) {
         viewModelScope.launch {
             val prayers = dao.getPrayersByDate(date.toString())
@@ -138,6 +150,7 @@ class PrayerScreenViewModel(private val dao: PrayerDao) : ViewModel() {
     // Before: Loaded total performed per prayer, causing all charts to use same data.
     // After: Loads separate maps for each status, ensuring each chart shows status-specific prayer counts.
 }
+
 class PrayerViewModelFactory(private val dao: PrayerDao) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(PrayerScreenViewModel::class.java)) {

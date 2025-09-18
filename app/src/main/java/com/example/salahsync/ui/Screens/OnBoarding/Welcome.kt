@@ -12,14 +12,18 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 
-/**
- * Welcome screen shown after splash / gender selection.
- */
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+
+import androidx.compose.material3.Text
+
+import androidx.compose.ui.unit.dp
+
+
 @Composable
 fun WelcomeScreen(
-    navController: NavController // 👈 Add NavController for navigation
+    navController: NavController
 ) {
-    // Full page column centered both vertically and horizontally
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -27,7 +31,6 @@ fun WelcomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // 👋 Greeting text
         Text(
             text = "Welcome to the app..",
             style = MaterialTheme.typography.headlineLarge
@@ -35,7 +38,6 @@ fun WelcomeScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Heading
         Text(
             text = "Who are you?",
             style = MaterialTheme.typography.headlineMedium
@@ -43,13 +45,13 @@ fun WelcomeScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Next Button → Navigate to TopBottom
         Button(onClick = {
-            navController.navigate("topbottom") {  // 👈 destination key
-                popUpTo("welcome") { inclusive = true } // remove welcome from back stack
+            navController.navigate("gender_selection") {
+                popUpTo("welcome") { inclusive = true }
             }
         }) {
             Text("Next")
         }
     }
 }
+

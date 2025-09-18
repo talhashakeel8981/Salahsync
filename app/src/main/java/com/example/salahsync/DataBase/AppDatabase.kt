@@ -11,7 +11,15 @@ import com.example.salahsync.DataBase.PrayerEntity // 🛠️ CHANGED: Import Pr
 
 
 
-@Database(entities = [PrayerEntity::class], version = 1)
+
+
+// ⚡ Include all entities here and bump version when adding new tables
+@Database(
+    entities = [PrayerEntity::class, Gender::class],
+    version = 2, // ← incremented to 2 because we added Gender
+    exportSchema = false
+)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun prayerDao(): PrayerDao // 🛠️ CHANGED: Ensure method is correctly defined
+    abstract fun prayerDao(): PrayerDao
+    abstract fun genderDao(): GenderDao
 }

@@ -1,5 +1,6 @@
 package com.example.salahsync.ui.Screens.OnBoarding
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -10,15 +11,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
-/**
- * Onboarding → Gender selection screen.
- * Shown after Welcome screen.
- */
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+
+import androidx.compose.material3.Text
+import androidx.compose.ui.platform.LocalContext
+
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController // NEW: Import NavController
+import com.example.salahsync.DataBase.Gender
+import com.example.salahsync.DataBase.GenderDao
+import kotlinx.coroutines.runBlocking
+
 @Composable
 fun GenderSelectionScreen(
-    onBrotherClick: () -> Unit,
-    onSisterClick: () -> Unit
+    navController: NavController,
+    genderDao: GenderDao
 ) {
+    val context = LocalContext.current // ✅ now resolved
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -34,34 +45,26 @@ fun GenderSelectionScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = onBrotherClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp)
-        ) {
-            Text("Brother")
-        }
+            onClick = {
+                runBlocking {
+                    genderDao.insert(Gender(id = 0, genderName = "Sister"))
+                }
 
-        Spacer(modifier = Modifier.height(16.dp))
+                // ✅ Save onboarding_done = true
+                context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean("onboarding_done", true)
+                    .apply()
 
-        Button(
-            onClick = onSisterClick,
+                navController.navigate("topbottom") {
+                    popUpTo("welcome") { inclusive = true }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)
         ) {
             Text("Sister")
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GenderSelectionPreview() {
-    MaterialTheme {
-        GenderSelectionScreen(
-            onBrotherClick = {},
-            onSisterClick = {}
-        )
     }
 }

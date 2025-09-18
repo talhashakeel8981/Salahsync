@@ -43,3 +43,5 @@ interface PrayerDao {
     @Query("SELECT COUNT(*) FROM Prayers WHERE date BETWEEN :startDate AND :endDate")
     suspend fun getTotalPrayersByDateRange(startDate: String, endDate: String): Int
 }
+
+

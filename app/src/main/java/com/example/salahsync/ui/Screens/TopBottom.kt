@@ -76,7 +76,10 @@ import java.util.Locale
 // ---------- TopBottom.kt (fixed) ----------
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TopBottom(viewModel: PrayerScreenViewModel,startDestination: String = "home") {
+fun TopBottom(
+    viewModel: PrayerScreenViewModel,
+    startDestination: String = "home"
+) {
     val bottomNavController = rememberNavController()
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
     Column(modifier = Modifier.fillMaxSize()) {
@@ -95,8 +98,12 @@ fun TopBottom(viewModel: PrayerScreenViewModel,startDestination: String = "home"
                 }
                 // Updated to pass viewModel to StatisticsScreen
                 // COMMENT: Ensures the Stats screen can access the ViewModel for data
-                composable("stats") { StatsScreen(viewModel) }
-                composable("settings") { SettingsNavHost() }
+                composable("stats") {
+                    StatsScreen(viewModel)
+                }
+                composable("settings") {
+                    SettingsNavHost()
+                }
             }
         }
         SalahBottomBar(bottomNavController)

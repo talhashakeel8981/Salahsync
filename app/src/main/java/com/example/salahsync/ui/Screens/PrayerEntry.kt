@@ -35,15 +35,38 @@ import androidx.compose.foundation.lazy.grid.items // CHANGED: Explicitly import
 import androidx.compose.ui.layout.ContentScale
 import android.view.SoundEffectConstants
 import androidx.compose.ui.platform.LocalView
+import androidx.navigation.NavController
 
+
+// 🎨 Colors
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+
+import androidx.compose.ui.draw.clip
+
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
+
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+import kotlinx.coroutines.launch
 
 
 // 🎨 Colors
 private val PrimaryBlue = Color(0xFF007AFF)
 private val BackgroundLightGray = Color(0xFFF3F5F8)
 private val CardBackgroundGray = Color(0xFFF5F5F5)
-
-//  FIX: Remove static prayerStatusImages → handled by ViewModel state instead
 
 // Updated: Removed static val prayerStatusImages = mapOf(...). Why: Hardcoded keys (e.g., "done") don't match prayer names (e.g., "Fajr"), causing fallback to invisible R.drawable.ic_launcher_background; now use dynamic ViewModel state for correct mapping after save.
 
@@ -89,7 +112,6 @@ fun PrayerList(
                         color = MaterialTheme.colorScheme.onSurface // ✅ adapts to dark mode
                     )
                     val statusIcon = statusImages[prayer.name]
-
                     if (statusIcon != null) {
                         Image(
                             painter = painterResource(id = statusIcon),
@@ -113,11 +135,15 @@ fun PrayerList(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
+fun PrayerScreen(
+    value: LocalDate,
+    viewModel: PrayerScreenViewModel
+) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
     var selectedPrayer by remember { mutableStateOf<PrayerTilesData?>(null) }
     val statusImages by viewModel.prayerStatusImages // Updated: Observe the dynamic state from ViewModel to get latest status icons after load/save.
+    val prayers by viewModel.prayers // NEW: Observe prayers from ViewModel
 
     LaunchedEffect(value) {
         viewModel.loadPrayers(value)
@@ -128,10 +154,9 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
             .fillMaxSize()
             .padding(top = 0.dp)
             .background(MaterialTheme.colorScheme.background) // ✅ theme-based background
-
     ) {
         PrayerList(
-            prayers = prayer, // Use global 'prayer' from PrayerTilesData.kt
+            prayers = prayers, // CHANGED: Use prayers from ViewModel instead of undefined 'prayer'
             statusImages = statusImages // Updated: Pass dynamic statusImages from ViewModel instead of static map. Why: Ensures selected status icons update and show visibly in the list after bottom sheet selection/save.
         ) { clickedPrayer ->
             selectedPrayer = clickedPrayer
@@ -144,7 +169,6 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                 },
                 sheetState = sheetState,
                 containerColor = MaterialTheme.colorScheme.surface // ✅ sheet color adapts to dark/light
-
             ) {
                 Column(
                     modifier = Modifier
@@ -165,7 +189,6 @@ fun PrayerScreen(value: LocalDate, viewModel: PrayerScreenViewModel) {
                         text = "How did you complete ${selectedPrayer?.name} today?",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface // ✅ readable in both themes
-
                     )
                     PrayerStatusGrid(
                         selectedPrayer = selectedPrayer!!,
@@ -236,3 +259,4 @@ fun PrayerStatusGrid(
         }
     }
 }
+
