@@ -203,7 +203,7 @@ fun DateSlider(
                 Icon(
                     painter = painterResource(id = R.drawable.previous),
                     contentDescription = "Previous Row",
-                    tint = Color.Blue,
+                    tint = Color.White,
                     modifier = Modifier.size(20.dp)
                         .padding(start = 3.dp)
                 )

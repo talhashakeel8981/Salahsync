@@ -1,5 +1,6 @@
 package com.example.salahsync.ui.Screens.OnBoarding
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +15,7 @@ import androidx.navigation.NavController
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 
 import androidx.compose.material3.Text
 
@@ -27,31 +29,39 @@ fun WelcomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background) // 🔥 ADDED
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text(
             text = "Welcome to the app..",
-            style = MaterialTheme.typography.headlineLarge
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.onBackground // 🔥 FIXED
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
             text = "Who are you?",
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground // 🔥 FIXED
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(onClick = {
-            navController.navigate("gender_selection") {
-                popUpTo("welcome") { inclusive = true }
-            }
-        }) {
+        Button(
+            onClick = {
+                navController.navigate("gender_selection") {
+                    popUpTo("welcome") { inclusive = true }
+                }
+            },
+            colors = ButtonDefaults.buttonColors( // 🔥 THEME COLORS
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        ) {
             Text("Next")
         }
     }
 }
-
