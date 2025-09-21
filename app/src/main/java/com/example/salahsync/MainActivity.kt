@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
 
         val prayerDao = db.prayerDao()
         val genderDao = db.genderDao()
-        val factory = PrayerViewModelFactory(prayerDao)
+        val factory = PrayerViewModelFactory(prayerDao,genderDao)
         val viewModel = ViewModelProvider(this, factory)[PrayerScreenViewModel::class.java]
 
         val navigateTo = intent.getStringExtra("navigateTo")

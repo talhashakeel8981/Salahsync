@@ -51,17 +51,9 @@ import androidx.compose.foundation.lazy.grid.items
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.lazy.grid.items // CHANGED: Explicitly import the correct 'items' for LazyVerticalGrid
 
-import androidx.compose.ui.draw.clip
-
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.painterResource
-
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
-import kotlinx.coroutines.launch
-
+import android.util.Log // ADDED: Import Log for debugging // Why: To log UI interactions and state changes
 
 // 🎨 Colors
 private val PrimaryBlue = Color(0xFF007AFF)
@@ -74,6 +66,7 @@ private val CardBackgroundGray = Color(0xFFF5F5F5)
 fun PrayerList(
     prayers: List<PrayerTilesData>,
     statusImages: Map<String, Int>, // Updated: Renamed parameter to statusImages for clarity; now expects dynamic map from ViewModel (prayerName → statusRes).
+    statusColors: Map<String, Color>, // ADDED: Parameter for status colors // Why: For dynamic icon tinting (e.g., Exempted in purple)
     onPrayerClick: (PrayerTilesData) -> Unit
 ) {
     val view = LocalView.current
@@ -88,6 +81,8 @@ fun PrayerList(
                     .clickable {
                         onPrayerClick(prayer)
                         view.playSoundEffect(SoundEffectConstants.CLICK)
+                        // ADDED: Log prayer click // Why: Debug which prayer is clicked
+                        Log.d("PrayerList", "Clicked prayer: ${prayer.name}")
                     }
             ) {
                 Row(
@@ -117,6 +112,8 @@ fun PrayerList(
                             painter = painterResource(id = statusIcon),
                             contentDescription = "Prayer Status",
                             contentScale = ContentScale.Fit,
+                            // CHANGED: Apply dynamic color tint from ViewModel // Why: Ensures correct tinting (e.g., purple for Exempted)
+                            colorFilter = ColorFilter.tint(statusColors[prayer.name] ?: Color.Transparent),
                             modifier = Modifier.size(32.dp)
                         )
                     } else {
@@ -144,10 +141,14 @@ fun PrayerScreen(
     var selectedPrayer by remember { mutableStateOf<PrayerTilesData?>(null) }
     val statusImages by viewModel.prayerStatusImages // Updated: Observe the dynamic state from ViewModel to get latest status icons after load/save.
     val prayers by viewModel.prayers // NEW: Observe prayers from ViewModel
+    // ADDED: Observe userGender // Why: Determines whether to show Exempted (female) or In Jamaat (male) in PrayerStatusGrid
+    val gender by viewModel.userGender
 
     LaunchedEffect(value) {
         viewModel.loadPrayers(value)
         // Updated: Removed viewModel.loadStats(value). Why: Fixes "Unresolved reference 'loadStats'" error—original loadStats was replaced by loadStatsForPeriod in ViewModel for tab-based period loading; this call is redundant as StatsScreen loads its own data independently. PrayerScreen only needs daily prayer data.
+        // ADDED: Log gender in UI // Why: Debug if gender is correctly passed to UI
+        Log.d("PrayerScreen", "Current gender: $gender")
     }
     Box(
         modifier = Modifier
@@ -157,11 +158,13 @@ fun PrayerScreen(
     ) {
         PrayerList(
             prayers = prayers, // CHANGED: Use prayers from ViewModel instead of undefined 'prayer'
-            statusImages = statusImages // Updated: Pass dynamic statusImages from ViewModel instead of static map. Why: Ensures selected status icons update and show visibly in the list after bottom sheet selection/save.
-        ) { clickedPrayer ->
-            selectedPrayer = clickedPrayer
-            coroutineScope.launch { sheetState.show() }
-        }
+            statusImages = statusImages, // Updated: Pass dynamic statusImages from ViewModel instead of static map. Why: Ensures selected status icons update and show visibly in the list after bottom sheet selection/save.
+            statusColors = viewModel.statusColors.value, // ADDED: Pass statusColors // Why: For dynamic icon tinting (e.g., Exempted in purple)
+            onPrayerClick = { clickedPrayer ->
+                selectedPrayer = clickedPrayer
+                coroutineScope.launch { sheetState.show() }
+            }
+        )
         if (sheetState.isVisible && selectedPrayer != null) {
             ModalBottomSheet(
                 onDismissRequest = {
@@ -194,6 +197,7 @@ fun PrayerScreen(
                         selectedPrayer = selectedPrayer!!,
                         value = value,
                         viewModel = viewModel,
+                        gender = gender, // ADDED: Pass gender // Why: Enables female-specific Exempted option in grid
                         onClose = { coroutineScope.launch { sheetState.hide() } }
                     )
                 }
@@ -208,15 +212,21 @@ fun PrayerStatusGrid(
     selectedPrayer: PrayerTilesData,
     value: LocalDate,
     viewModel: PrayerScreenViewModel,
+    gender: String, // ADDED: Gender parameter // Why: Determines whether to show Exempted (female) or In Jamaat (male)
     onClose: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
+    // CHANGED: Replaced Menstruation with Exempted for females // Why: Matches requirement for female-specific status
     val options = listOf(
         Triple("Not Prayed", R.drawable.notprayed, Color(0xFF000000)),
         Triple("Prayed Late", R.drawable.prayedlate, Color(0xFFD64F73)),
         Triple("On Time", R.drawable.prayedontime, Color(0xFFFFD92E)),
-        Triple("In Jamaat", R.drawable.jamat, Color(0xFF1DD1A1))
+        Triple(if (gender == "Woman") "Exempted" else "In Jamaat",
+            if (gender == "Woman") R.drawable.track else R.drawable.jamat,
+            if (gender == "Woman") Color(0xFF8B5CF6) else Color(0xFF1DD1A1))
     )
+    // ADDED: Log options // Why: Debug which options are displayed based on gender
+    Log.d("PrayerStatusGrid", "Gender: $gender, Options: ${options.map { it.first }}")
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
@@ -237,6 +247,8 @@ fun PrayerStatusGrid(
                             value,
                             icon
                         )
+                        // ADDED: Log status selection // Why: Debug which status is selected
+                        Log.d("PrayerStatusGrid", "Selected status: $title for ${selectedPrayer.name}")
                         coroutineScope.launch { onClose() }
                     }
                     .padding(16.dp),
@@ -259,4 +271,3 @@ fun PrayerStatusGrid(
         }
     }
 }
-

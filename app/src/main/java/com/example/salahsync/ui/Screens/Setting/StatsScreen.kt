@@ -50,6 +50,7 @@ import java.time.LocalDate
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -63,8 +64,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import com.example.salahsync.R
 
+import android.util.Log // ADDED: Import Log for debugging // Why: To log stats display and gender
 
-// Define a data class to hold color configurations for each stat
 // Define a data class to hold color configurations for each stat
 data class StatColors(
     val backgroundColor: Color,
@@ -80,17 +81,20 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
     val notPrayedCounts by viewModel.notPrayedCounts
     val onTimeCounts by viewModel.onTimeCounts
     val jamatCounts by viewModel.jamatCounts
+    // ADDED: Observe user gender // Why: Determines whether to show In Jamaat (male) or Exempted (female)
+    val gender by viewModel.userGender
 
     // ✅ Theme-aware color configs (Reordered + Meaningful colors)
     // ✅ Custom icon colors applied for all statuses (background + bar remain theme-based)
+    // CHANGED: Replaced Menstruation with Exempted for females // Why: Matches requirement for female-specific stats
     val statColorConfigs = listOf(
         Triple(
-            "In Jamaat",
+            if (gender == "Woman") "Exempted" else "In Jamaat",
             viewModel.jamatCount.value,
             StatColors(
-                backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-                iconTint = Color(0xFF1DD1A1), // ✅ Fixed green for Jamaat
-                barColor = MaterialTheme.colorScheme.secondary
+                backgroundColor = if (gender == "Woman") MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.secondaryContainer,
+                iconTint = if (gender == "Woman") Color(0xFF8B5CF6) else Color(0xFF1DD1A1), // Purple for Exempted, teal for In Jamaat
+                barColor = if (gender == "Woman") MaterialTheme.colorScheme.primary.copy(alpha = 0.7f) else MaterialTheme.colorScheme.secondary
             )
         ),
         Triple(
@@ -177,7 +181,11 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                     val isFocused by interactionSource.collectIsFocusedAsState()
                     Tab(
                         selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
+                        onClick = {
+                            selectedTabIndex = index
+                            // ADDED: Log tab selection // Why: Debug which tab is selected
+                            Log.d("StatsScreen", "Selected tab: $title")
+                        },
                         modifier = Modifier
                             .padding(horizontal = 10.dp, vertical = 15.dp)
                             .background(
@@ -222,6 +230,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                             "Not Prayed" -> R.drawable.notprayed
                             "On Time" -> R.drawable.prayedontime
                             "In Jamaat" -> R.drawable.jamat
+                            "Exempted" -> R.drawable.track // CHANGED: Added Exempted icon // Why: For female users in stats
                             else -> R.drawable.prayedlate
                         },
                         iconTint = colors.iconTint,
@@ -231,10 +240,13 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                             "Not Prayed" -> notPrayedCounts
                             "On Time" -> onTimeCounts
                             "In Jamaat" -> jamatCounts
+                            "Exempted" -> jamatCounts // CHANGED: Use jamatCounts for Exempted // Why: Reuses existing state for female stats
                             else -> emptyMap()
                         },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    // ADDED: Log stat display // Why: Debug which stats are displayed
+                    Log.d("StatsScreen", "Displaying stat: $title, count: $count")
                 }
             }
         }

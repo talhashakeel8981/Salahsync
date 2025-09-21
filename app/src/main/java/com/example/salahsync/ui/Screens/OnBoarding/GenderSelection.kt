@@ -1,6 +1,7 @@
 package com.example.salahsync.ui.Screens.OnBoarding
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -17,12 +18,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 
 import androidx.compose.material3.Text
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController // NEW: Import NavController
 import com.example.salahsync.DataBase.Gender
 import com.example.salahsync.DataBase.GenderDao
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @Composable
@@ -31,11 +34,41 @@ fun GenderSelectionScreen(
     genderDao: GenderDao
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    fun saveGenderAndNavigate(gender: String) {
+        // ADDED: Log button tap // Why: Confirm button click is detected
+        Log.d("GenderSelection", "Button tapped for gender: $gender")
+        scope.launch {
+            try {
+                // ADDED: Log before insert // Why: Check if coroutine starts
+                Log.d("GenderSelection", "Starting coroutine for insert")
+                genderDao.insert(Gender(id = 0, genderName = gender))
+                // ADDED: Log after insert // Why: Confirm insert completes
+                Log.d("GenderSelection", "Insert completed for $gender")
+
+                context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean("onboarding_done", true)
+                    .apply()
+                // ADDED: Log before navigation // Why: Check if navigation is reached
+                Log.d("GenderSelection", "Setting onboarding_done and navigating")
+                navController.navigate("topbottom") {
+                    popUpTo("welcome") { inclusive = true }
+                }
+                // ADDED: Log after navigation // Why: Confirm navigation call
+                Log.d("GenderSelection", "Navigation called for $gender")
+            } catch (e: Exception) {
+                // ADDED: Error handling // Why: Catch and log any exceptions preventing navigation
+                Log.e("GenderSelection", "Error in saveGenderAndNavigate: ${e.message}", e)
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background) // 🔥 ADDED
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -43,30 +76,17 @@ fun GenderSelectionScreen(
         Text(
             text = "Select your gender",
             style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground // 🔥 FIXED
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = {
-                runBlocking {
-                    genderDao.insert(Gender(id = 0, genderName = "Man"))
-                }
-
-                context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-                    .edit()
-                    .putBoolean("onboarding_done", true)
-                    .apply()
-
-                navController.navigate("topbottom") {
-                    popUpTo("welcome") { inclusive = true }
-                }
-            },
+            onClick = { saveGenderAndNavigate("Man") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
-            colors = ButtonDefaults.buttonColors( // 🔥 THEME COLORS
+            colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             )
@@ -77,24 +97,11 @@ fun GenderSelectionScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = {
-                runBlocking {
-                    genderDao.insert(Gender(id = 0, genderName = "Woman"))
-                }
-
-                context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-                    .edit()
-                    .putBoolean("onboarding_done", true)
-                    .apply()
-
-                navController.navigate("topbottom") {
-                    popUpTo("welcome") { inclusive = true }
-                }
-            },
+            onClick = { saveGenderAndNavigate("Woman") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
-            colors = ButtonDefaults.buttonColors( // 🔥 THEME COLORS
+            colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             )

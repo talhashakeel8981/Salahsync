@@ -15,47 +15,91 @@ import androidx.compose.runtime.State
 
 
 
-
 import androidx.lifecycle.viewModelScope
+import com.example.salahsync.DataBase.Gender
+import com.example.salahsync.DataBase.GenderDao
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import androidx.compose.ui.graphics.Color // ADDED: Import Color for statusColorMap // Why: Needed to define colors for status icons, including Exempted
+import android.util.Log // ADDED: Import Log for debugging // Why: To log gender loading and database errors
 
+class PrayerScreenViewModel(
+    private val dao: PrayerDao,
+    private val genderDao: GenderDao // ✅ NEW: Inject GenderDao for gender-based UI logic
+) : ViewModel() {
 
-class PrayerScreenViewModel(private val dao: PrayerDao) : ViewModel() {
+    // ------------------ Gender ------------------
+
+    // ✅ NEW: Local state to hold the current user's gender
+    // Before: No gender awareness, so app could not differentiate male/female prayer options.
+    // After: Added `_userGender` as state to control which bottom sheet (male/female) to show.
+    private val _userGender = mutableStateOf("Man")
+    val userGender: State<String> = _userGender // Exposed to UI (read-only)
+
+    init {
+        // ✅ NEW: Load gender from DB once ViewModel is initialized
+        // Why: Ensures UI knows whether to show "Jamaat" (male) or "Exempted" (female)
+        viewModelScope.launch {
+            try {
+                val gender = genderDao.getGender()
+                _userGender.value = gender?.genderName ?: "Man"
+                // ADDED: Log gender loading // Why: Debug if gender is correctly retrieved from database
+                Log.d("PrayerScreenViewModel", "Loaded gender: ${_userGender.value}")
+            } catch (e: Exception) {
+                // ADDED: Error handling // Why: Catches database errors to prevent crashes
+                Log.e("PrayerScreenViewModel", "Error loading gender: ${e.message}")
+                _userGender.value = "Man" // Fallback to "Man" on error
+            }
+        }
+    }
+
+    // ------------------ Counts ------------------
     private val _prayedCount = mutableStateOf(0)
     val prayedCount: State<Int> = _prayedCount
+
     private val _notPrayedCount = mutableStateOf(0)
     val notPrayedCount: State<Int> = _notPrayedCount
+
     private val _onTimeCount = mutableStateOf(0)
     val onTimeCount: State<Int> = _onTimeCount
+
     private val _jamatCount = mutableStateOf(0)
     val jamatCount: State<Int> = _jamatCount
+
     private val _prayerStatusImages = mutableStateOf<Map<String, Int>>(emptyMap())
     val prayerStatusImages: State<Map<String, Int>> = _prayerStatusImages
+
     private val _totalCounts = mutableStateOf(0)
     val totalCounts: State<Int> = _totalCounts
-    // CHANGED: Removed _prayerCounts since we now use per-status maps for bar charts.
-    // Before: Single map for total performed prayers, causing all bar charts to show the same data.
-    // After: Replaced with per-status maps for accurate per-status bar updates.
-    // private val _prayerCounts = mutableStateOf<Map<String, Int>>(mapOf("Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0))
-    // val prayerCounts: State<Map<String, Int>> = _prayerCounts
-    // CHANGED: Added per-status count maps for each prayer type.
-    // Before: No per-status breakdown, leading to incorrect bar updates.
-    // After: Each status has its own map, allowing specific updates (e.g., only Fajr bar in Prayed Late updates when Fajr status changes to Prayed Late).
-    private val _prayedLateCounts = mutableStateOf<Map<String, Int>>(mapOf("Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0))
+
+    // ------------------ Per-status Maps ------------------
+    // CHANGED: Introduced per-status maps (instead of 1 global map)
+    // Why: Needed accurate per-status counts for bar chart breakdown.
+    private val _prayedLateCounts = mutableStateOf<Map<String, Int>>(
+        mapOf("Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0)
+    )
     val prayedLateCounts: State<Map<String, Int>> = _prayedLateCounts
-    private val _notPrayedCounts = mutableStateOf<Map<String, Int>>(mapOf("Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0))
+
+    private val _notPrayedCounts = mutableStateOf<Map<String, Int>>(
+        mapOf("Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0)
+    )
     val notPrayedCounts: State<Map<String, Int>> = _notPrayedCounts
-    private val _onTimeCounts = mutableStateOf<Map<String, Int>>(mapOf("Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0))
+
+    private val _onTimeCounts = mutableStateOf<Map<String, Int>>(
+        mapOf("Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0)
+    )
     val onTimeCounts: State<Map<String, Int>> = _onTimeCounts
-    private val _jamatCounts = mutableStateOf<Map<String, Int>>(mapOf("Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0))
+
+    private val _jamatCounts = mutableStateOf<Map<String, Int>>(
+        mapOf("Fajr" to 0, "Dhuhr" to 0, "Asr" to 0, "Maghrib" to 0, "Isha" to 0)
+    )
     val jamatCounts: State<Map<String, Int>> = _jamatCounts
+
     private val prayerSelections = mutableMapOf<String, Int>()
-    // NEW: Add prayers state for PrayerScreen
+
+    // ------------------ Prayer Tiles ------------------
     private val _prayers = mutableStateOf(
         listOf(
             PrayerTilesData("Fajr", R.drawable.ic_fajr),
@@ -67,95 +111,198 @@ class PrayerScreenViewModel(private val dao: PrayerDao) : ViewModel() {
     )
     val prayers: State<List<PrayerTilesData>> = _prayers
 
+    // ADDED: Status color map for icon tinting // Why: Defines colors for status icons, including Exempted
+    private val statusColorMap = mapOf(
+        R.drawable.notprayed to Color(0xFF000000),   // Black for Not Prayed
+        R.drawable.prayedlate to Color(0xFFD64F73),  // Pinkish-red for Prayed Late
+        R.drawable.prayedontime to Color(0xFFFFD92E),// Yellow for On Time
+        R.drawable.jamat to Color(0xFF1DD1A1),       // Teal for In Jamaat
+        R.drawable.track to Color(0xFF8B5CF6)     // CHANGED: Replaced Menstruation with Exempted // Why: Matches female-specific status
+    )
+
+    // ADDED: State for status colors // Why: Maps prayer names to their status colors for dynamic tinting in PrayerList
+    private val _statusColors = mutableStateOf<Map<String, Color>>(emptyMap())
+    val statusColors: State<Map<String, Color>> = _statusColors
+
+    // ------------------ Database Ops ------------------
+
     fun loadPrayers(date: LocalDate) {
         viewModelScope.launch {
-            val prayers = dao.getPrayersByDate(date.toString())
-            _prayerStatusImages.value = prayers.associate { it.name to it.statusRes }
-            prayerSelections.clear()
-            prayerSelections.putAll(prayers.associate { it.name to it.statusRes })
+            try {
+                val prayers = dao.getPrayersByDate(date.toString())
+                // Update prayer status images
+                _prayerStatusImages.value = prayers.associate { it.name to it.statusRes }
+
+                // ADDED: Update status colors // Why: Maps statusRes to colors for PrayerList icon tinting (e.g., Exempted as purple)
+                _statusColors.value = prayers.associate { prayer ->
+                    prayer.name to (statusColorMap[prayer.statusRes] ?: Color.Transparent)
+                }
+
+                // Keep a mutable cache for fast UI selection updates
+                prayerSelections.clear()
+                prayerSelections.putAll(prayers.associate { it.name to it.statusRes })
+                // ADDED: Log loaded prayers // Why: Debug if prayers and statuses are loaded correctly
+                Log.d("PrayerScreenViewModel", "Loaded prayers: ${_prayerStatusImages.value}")
+            } catch (e: Exception) {
+                // ADDED: Error handling // Why: Prevents crashes on database query failure
+                Log.e("PrayerScreenViewModel", "Error loading prayers: ${e.message}")
+            }
         }
     }
+
     fun savePrayerStatus(name: String, statusRes: Int, date: LocalDate, statusResAgain: Int) {
         viewModelScope.launch {
-            val existingPrayer = dao.getPrayersByDate(date.toString()).find { it.name == name }
-            val prayerEntity = PrayerEntity(
-                id = existingPrayer?.id ?: 0,
-                name = name,
-                iconRes = statusRes,
-                date = date.toString(),
-                statusRes = statusResAgain
-            )
-            if (existingPrayer != null) {
-                dao.updatePrayer(prayerEntity)
-            } else {
-                dao.insertPrayer(prayerEntity)
+            try {
+                val existingPrayer = dao.getPrayersByDate(date.toString()).find { it.name == name }
+
+                // CHANGED: Map Exempted to jamatCount for females // Why: Reuses jamatCount for Exempted to simplify stats
+                val finalStatusRes = if (_userGender.value == "Woman" && statusRes == R.drawable.track) {
+                    statusRes // Store Exempted in database
+                } else {
+                    statusResAgain // Use original status for males or other cases
+                }
+
+                val prayerEntity = PrayerEntity(
+                    id = existingPrayer?.id ?: 0,
+                    name = name,
+                    iconRes = statusRes,
+                    date = date.toString(),
+                    statusRes = finalStatusRes
+                )
+
+                if (existingPrayer != null) {
+                    dao.updatePrayer(prayerEntity)
+                } else {
+                    dao.insertPrayer(prayerEntity)
+                }
+
+                // ✅ Update cached selection + notify UI
+                prayerSelections[name] = finalStatusRes
+                _prayerStatusImages.value = _prayerStatusImages.value.toMutableMap()
+                    .apply { put(name, finalStatusRes) }
+                // ADDED: Update status color // Why: Ensures PrayerList reflects new status color (e.g., purple for Exempted)
+                _statusColors.value = _statusColors.value.toMutableMap()
+                    .apply { put(name, statusColorMap[finalStatusRes] ?: Color.Transparent) }
+                // ADDED: Log status save // Why: Debug if status (e.g., Exempted) is saved correctly
+                Log.d("PrayerScreenViewModel", "Saved status for $name: $finalStatusRes")
+            } catch (e: Exception) {
+                // ADDED: Error handling // Why: Prevents crashes on database save failure
+                Log.e("PrayerScreenViewModel", "Error saving prayer status: ${e.message}")
             }
-            prayerSelections[name] = statusResAgain
-            _prayerStatusImages.value = _prayerStatusImages.value.toMutableMap().apply { put(name, statusResAgain) }
         }
-    } // Updated: Removed all manual count/map increments/decrements (e.g., _prayedCount++, map updates). Why: Conflicts with period-specific loading; now rely on loadStatsForPeriod to fetch from DB for accuracy.
-    // Updated: Removed getCountStateForStatus helper. Why: Unused after removing manual updates.
-    private suspend fun loadStatusCounts(statusRes: Int): Map<String, Int> {
-        return mapOf(
-            "Fajr" to dao.getPrayerStatusCount("Fajr", statusRes),
-            "Dhuhr" to dao.getPrayerStatusCount("Dhuhr", statusRes),
-            "Asr" to dao.getPrayerStatusCount("Asr", statusRes),
-            "Maghrib" to dao.getPrayerStatusCount("Maghrib", statusRes),
-            "Isha" to dao.getPrayerStatusCount("Isha", statusRes)
-        )
     }
+
+    // ------------------ Helper Queries ------------------
+
+    // Load counts for a given status (e.g., OnTime, NotPrayed) for ALL TIME
+    private suspend fun loadStatusCounts(statusRes: Int): Map<String, Int> {
+        try {
+            return mapOf(
+                "Fajr" to dao.getPrayerStatusCount("Fajr", statusRes),
+                "Dhuhr" to dao.getPrayerStatusCount("Dhuhr", statusRes),
+                "Asr" to dao.getPrayerStatusCount("Asr", statusRes),
+                "Maghrib" to dao.getPrayerStatusCount("Maghrib", statusRes),
+                "Isha" to dao.getPrayerStatusCount("Isha", statusRes)
+            )
+        } catch (e: Exception) {
+            // ADDED: Error handling // Why: Prevents crashes on database query failure
+            Log.e("PrayerScreenViewModel", "Error loading status counts: ${e.message}")
+            return emptyMap()
+        }
+    }
+
+    // Overload for RANGE-based counts (Week, Month, Year)
     private suspend fun loadStatusCounts(statusRes: Int, startDate: String, endDate: String): Map<String, Int> {
-        return mapOf(
-            "Fajr" to dao.getPrayerStatusCountByDateRange("Fajr", statusRes, startDate, endDate),
-            "Dhuhr" to dao.getPrayerStatusCountByDateRange("Dhuhr", statusRes, startDate, endDate),
-            "Asr" to dao.getPrayerStatusCountByDateRange("Asr", statusRes, startDate, endDate),
-            "Maghrib" to dao.getPrayerStatusCountByDateRange("Maghrib", statusRes, startDate, endDate),
-            "Isha" to dao.getPrayerStatusCountByDateRange("Isha", statusRes, startDate, endDate)
-        )
-    } // Updated: Added overload for range-based loading. Why: Enables using date range queries for period-specific bar charts (e.g., weekly counts).
+        try {
+            return mapOf(
+                "Fajr" to dao.getPrayerStatusCountByDateRange("Fajr", statusRes, startDate, endDate),
+                "Dhuhr" to dao.getPrayerStatusCountByDateRange("Dhuhr", statusRes, startDate, endDate),
+                "Asr" to dao.getPrayerStatusCountByDateRange("Asr", statusRes, startDate, endDate),
+                "Maghrib" to dao.getPrayerStatusCountByDateRange("Maghrib", statusRes, startDate, endDate),
+                "Isha" to dao.getPrayerStatusCountByDateRange("Isha", statusRes, startDate, endDate)
+            )
+        } catch (e: Exception) {
+            // ADDED: Error handling // Why: Prevents crashes on database query failure
+            Log.e("PrayerScreenViewModel", "Error loading status counts by range: ${e.message}")
+            return emptyMap()
+        }
+    }
+
+    // ------------------ Period Stats ------------------
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun loadStatsForPeriod(period: String, now: LocalDate) {
         viewModelScope.launch {
-            val endDate = now.toString()
-            if (period == "All Time") {
-                _prayedCount.value = dao.getTotalStatusCount(R.drawable.prayedlate)
-                _notPrayedCount.value = dao.getTotalStatusCount(R.drawable.notprayed)
-                _onTimeCount.value = dao.getTotalStatusCount(R.drawable.prayedontime)
-                _jamatCount.value = dao.getTotalStatusCount(R.drawable.jamat)
-                _totalCounts.value = dao.getTotalPrayers()
-                _prayedLateCounts.value = loadStatusCounts(R.drawable.prayedlate)
-                _notPrayedCounts.value = loadStatusCounts(R.drawable.notprayed)
-                _onTimeCounts.value = loadStatusCounts(R.drawable.prayedontime)
-                _jamatCounts.value = loadStatusCounts(R.drawable.jamat)
-            } else {
-                val startDate = when (period) {
-                    "Week" -> now.minusDays(6).toString()
-                    "Month" -> now.minusDays(29).toString()
-                    "Year" -> now.minusDays(364).toString()
-                    else -> "1970-01-01"
+            try {
+                val endDate = now.toString()
+
+                if (period == "All Time") {
+                    // Load global counts (ignores date range)
+                    _prayedCount.value = dao.getTotalStatusCount(R.drawable.prayedlate)
+                    _notPrayedCount.value = dao.getTotalStatusCount(R.drawable.notprayed)
+                    _onTimeCount.value = dao.getTotalStatusCount(R.drawable.prayedontime)
+                    // CHANGED: Use jamatCount for both In Jamaat (men) and Exempted (women) // Why: Simplifies stats by reusing state
+                    _jamatCount.value = dao.getTotalStatusCount(
+                        if (_userGender.value == "Woman") R.drawable.track else R.drawable.jamat
+                    )
+                    _totalCounts.value = dao.getTotalPrayers()
+
+                    _prayedLateCounts.value = loadStatusCounts(R.drawable.prayedlate)
+                    _notPrayedCounts.value = loadStatusCounts(R.drawable.notprayed)
+                    _onTimeCounts.value = loadStatusCounts(R.drawable.prayedontime)
+                    // CHANGED: Load jamatCounts with gender-based status // Why: Maps Exempted to jamatCounts for women
+                    _jamatCounts.value = loadStatusCounts(
+                        if (_userGender.value == "Woman") R.drawable.track else R.drawable.jamat
+                    )
+                } else {
+                    // Load within specific range
+                    val startDate = when (period) {
+                        "Week" -> now.minusDays(6).toString()
+                        "Month" -> now.minusDays(29).toString()
+                        "Year" -> now.minusDays(364).toString()
+                        else -> "1970-01-01" // fallback for custom case
+                    }
+
+                    _prayedCount.value = dao.getStatusCountByDateRange(R.drawable.prayedlate, startDate, endDate)
+                    _notPrayedCount.value = dao.getStatusCountByDateRange(R.drawable.notprayed, startDate, endDate)
+                    _onTimeCount.value = dao.getStatusCountByDateRange(R.drawable.prayedontime, startDate, endDate)
+                    // CHANGED: Use jamatCount for both In Jamaat and Exempted // Why: Simplifies stats
+                    _jamatCount.value = dao.getStatusCountByDateRange(
+                        if (_userGender.value == "Woman") R.drawable.track else R.drawable.jamat,
+                        startDate,
+                        endDate
+                    )
+                    _totalCounts.value = dao.getTotalPrayersByDateRange(startDate, endDate)
+
+                    _prayedLateCounts.value = loadStatusCounts(R.drawable.prayedlate, startDate, endDate)
+                    _notPrayedCounts.value = loadStatusCounts(R.drawable.notprayed, startDate, endDate)
+                    _onTimeCounts.value = loadStatusCounts(R.drawable.prayedontime, startDate, endDate)
+                    // CHANGED: Load jamatCounts with gender-based status // Why: Maps Exempted to jamatCounts for women
+                    _jamatCounts.value = loadStatusCounts(
+                        if (_userGender.value == "Woman") R.drawable.track else R.drawable.jamat,
+                        startDate,
+                        endDate
+                    )
                 }
-                _prayedCount.value = dao.getStatusCountByDateRange(R.drawable.prayedlate, startDate, endDate)
-                _notPrayedCount.value = dao.getStatusCountByDateRange(R.drawable.notprayed, startDate, endDate)
-                _onTimeCount.value = dao.getStatusCountByDateRange(R.drawable.prayedontime, startDate, endDate)
-                _jamatCount.value = dao.getStatusCountByDateRange(R.drawable.jamat, startDate, endDate)
-                _totalCounts.value = dao.getTotalPrayersByDateRange(startDate, endDate)
-                _prayedLateCounts.value = loadStatusCounts(R.drawable.prayedlate, startDate, endDate)
-                _notPrayedCounts.value = loadStatusCounts(R.drawable.notprayed, startDate, endDate)
-                _onTimeCounts.value = loadStatusCounts(R.drawable.prayedontime, startDate, endDate)
-                _jamatCounts.value = loadStatusCounts(R.drawable.jamat, startDate, endDate)
+                // ADDED: Log stats loading // Why: Debug if stats (including Exempted) are loaded correctly
+                Log.d("PrayerScreenViewModel", "Loaded stats for $period: Jamaat/Exempted=${_jamatCount.value}")
+            } catch (e: Exception) {
+                // ADDED: Error handling // Why: Prevents crashes on stats loading failure
+                Log.e("PrayerScreenViewModel", "Error loading stats: ${e.message}")
             }
         }
-    } // Updated: Added new function to load stats for a specific period using range queries. Why: Enables functional tabs; calculates start/end dates and loads percentages/bars accordingly (e.g., last 7 days for "Week").
-    // CHANGED: Replaced single performed counts with per-status maps using new DAO query.
-    // Before: Loaded total performed per prayer, causing all charts to use same data.
-    // After: Loads separate maps for each status, ensuring each chart shows status-specific prayer counts.
+    }
 }
 
-class PrayerViewModelFactory(private val dao: PrayerDao) : ViewModelProvider.Factory {
+// ✅ CHANGED: Factory updated to also accept GenderDao
+class PrayerViewModelFactory(
+    private val dao: PrayerDao,
+    private val genderDao: GenderDao // NEW
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(PrayerScreenViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return PrayerScreenViewModel(dao) as T
+            return PrayerScreenViewModel(dao, genderDao) as T // pass GenderDao too
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
