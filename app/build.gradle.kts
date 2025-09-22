@@ -64,6 +64,11 @@ dependencies {
     implementation(libs.androidx.core.i18n)
     implementation(libs.androidx.foundation.android)
     implementation(libs.firebase.database)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
     val room_version = "2.7.2"
 
 
@@ -91,6 +96,9 @@ dependencies {
 // Firestore
     implementation("com.google.firebase:firebase-firestore-ktx")
 
+//Firebase Authentication
+
+    implementation ("com.google.firebase:firebase-auth")
 
 
     testImplementation(libs.junit)

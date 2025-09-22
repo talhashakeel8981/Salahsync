@@ -51,7 +51,7 @@ fun SettingScreen(
     invite:()-> Unit,
     emailfeedback:()->Unit,
     databackup:()-> Unit,
-    rateus:()-> Unit
+    rateus:()-> Unit,
 ) {
 
     val contextkiinvite = LocalContext.current

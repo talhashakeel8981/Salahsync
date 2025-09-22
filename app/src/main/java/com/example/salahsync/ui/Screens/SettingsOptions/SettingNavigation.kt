@@ -3,11 +3,11 @@ package com.example.salahsync.ui.Screens.SettingsOptions
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.salahsync.ui.Screens.Setting.SettingScreen
+import com.example.salahsync.ui.Screens.SettingsOptions.DataBackup.DataBackupScreen
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -42,7 +42,7 @@ fun SettingsNavHost() {
         composable("privacy"){ PrivacyPolicyScreen (onBack = {settingsNavController.popBackStack()})}
         composable("trackings"){ TrackingReasonScreen (onBack = {settingsNavController.popBackStack()})}
         composable ("emailfeedback"){EmailFeedback (onBack ={settingsNavController.popBackStack()} )}
-        composable ("databackup"){DataBackupScreen (onBack = {settingsNavController.popBackStack()})}
+        composable ("databackup"){ DataBackupScreen (onBack = {settingsNavController.popBackStack()}) }
         composable ("appearence"){AppearanceScreen  (onBack = {settingsNavController.popBackStack()})}
         composable("rateus"){LoveSalahsync(onBack = {settingsNavController.popBackStack()}) }
     }
