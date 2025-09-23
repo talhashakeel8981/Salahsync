@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ Initialize Room database
+        // Initialize Room database
         val db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
 
         val prayerDao = db.prayerDao()
         val genderDao = db.genderDao()
-        val factory = PrayerViewModelFactory(prayerDao,genderDao)
+        val factory = PrayerViewModelFactory(prayerDao, genderDao)
         val viewModel = ViewModelProvider(this, factory)[PrayerScreenViewModel::class.java]
 
         val navigateTo = intent.getStringExtra("navigateTo")
@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             SalahSyncTheme {
                 AppNavigation(
-                    viewModel = viewModel,
+                    prayerViewModel = viewModel, // Changed from viewModel to prayerViewModel
                     genderDao = genderDao,
                     navigateTo = navigateTo ?: ""
                 )

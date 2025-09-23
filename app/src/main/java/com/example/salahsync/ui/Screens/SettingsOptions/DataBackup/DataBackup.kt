@@ -37,21 +37,32 @@ import com.example.salahsync.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DataBackupScreen(onBack: () -> Unit) {
+fun DataBackupScreen(
+    onBack: () -> Unit,
+    viewModel: AuthViewModel // Inject AuthViewModel
+) {
+    // State to manage which screen to show
+    var currentScreen by remember { mutableStateOf("DataBackup") }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    // Center the title text
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text("DataBackup")
+                        Text("Data Backup")
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {
+                        if (currentScreen == "DataBackup") {
+                            onBack() // Go back to previous screen
+                        } else {
+                            currentScreen = "DataBackup" // Go back to DataBackup content
+                        }
+                    }) {
                         Icon(
                             painter = painterResource(id = R.drawable.leftarrow),
                             contentDescription = "Back",
@@ -62,78 +73,64 @@ fun DataBackupScreen(onBack: () -> Unit) {
             )
         }
     ) { innerPadding ->
-        // Screen content
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp)
-        ) {
-            // Add your toggle here
-
-        }
-    }
-}
-
-@SuppressLint("UnrememberedMutableState")
-@Composable
-fun LoginScreen(
-    onLoginClick: (String, String) -> Unit,
-    onNavigateToRegister: () -> Unit,
-    viewModel: AuthViewModel
-) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    val isLoading by derivedStateOf { viewModel.isLoading.value }
-    val error by derivedStateOf { viewModel.errorMessage.value }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("Login", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (error != null) {
-            Text(text = error ?: "", color = MaterialTheme.colorScheme.error)
-            Spacer(Modifier.height(8.dp))
-        }
-
-        Button(
-            onClick = { onLoginClick(email.trim(), password) },
-            enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp))
-            else Text("Login")
-        }
-
-        TextButton(
-            onClick = onNavigateToRegister,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Don't have an account? Register")
+        when (currentScreen) {
+            "DataBackup" -> {
+                // Default DataBackupScreen content
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Check if user is logged in
+                    if (viewModel.currentUser.value != null) {
+                        // Show HomeScreen content if logged in
+                        HomeScreen(
+                            onSignOut = { viewModel.signOut() },
+                            viewModel = viewModel
+                        )
+                    } else {
+                        // Show button to trigger LoginScreen
+                        Button(
+                            onClick = { currentScreen = "Login" },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Login to Enable Data Backup")
+                        }
+                    }
+                }
+            }
+            "Login" -> {
+                LoginScreen(
+                    onLoginClick = { email, password ->
+                        viewModel.signIn(email, password) { success ->
+                            if (success) {
+                                currentScreen = "DataBackup" // Go back to DataBackup after login
+                            }
+                        }
+                    },
+                    onNavigateToRegister = { currentScreen = "Register" },
+                    viewModel = viewModel
+                )
+            }
+            "Register" -> {
+                RegisterScreen(
+                    onRegisterClick = { email, password, confirmPassword ->
+                        if (password == confirmPassword) {
+                            viewModel.signUp(email, password) { success ->
+                                if (success) {
+                                    currentScreen = "DataBackup" // Go back to DataBackup after register
+                                }
+                            }
+                        } else {
+                            viewModel.errorMessage.value = "Passwords do not match"
+                        }
+                    },
+                    onNavigateToLogin = { currentScreen = "Login" },
+                    viewModel = viewModel
+                )
+            }
         }
     }
 }

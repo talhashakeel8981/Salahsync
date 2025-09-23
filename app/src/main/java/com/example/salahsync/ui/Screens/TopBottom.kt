@@ -78,10 +78,12 @@ import java.util.Locale
 @Composable
 fun TopBottom(
     viewModel: PrayerScreenViewModel,
-    startDestination: String = "home"
+    startDestination: String = "home",
+    navController: NavController
 ) {
     val bottomNavController = rememberNavController()
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(1f)) {
             NavHost(
@@ -96,13 +98,11 @@ fun TopBottom(
                         }
                     }
                 }
-                // Updated to pass viewModel to StatisticsScreen
-                // COMMENT: Ensures the Stats screen can access the ViewModel for data
                 composable("stats") {
                     StatsScreen(viewModel)
                 }
                 composable("settings") {
-                    SettingsNavHost()
+                    SettingsNavHost(navController = navController) // Pass top-level navController
                 }
             }
         }

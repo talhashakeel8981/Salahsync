@@ -65,6 +65,7 @@ import androidx.compose.ui.draw.clip
 import com.example.salahsync.R
 
 import android.util.Log // ADDED: Import Log for debugging // Why: To log stats display and gender
+import androidx.compose.foundation.isSystemInDarkTheme
 
 // Define a data class to hold color configurations for each stat
 data class StatColors(
@@ -87,41 +88,47 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
     // ✅ Theme-aware color configs (Reordered + Meaningful colors)
     // ✅ Custom icon colors applied for all statuses (background + bar remain theme-based)
     // CHANGED: Replaced Menstruation with Exempted for females // Why: Matches requirement for female-specific stats
+
+
+
+
+    val isDark = isSystemInDarkTheme()
+
     val statColorConfigs = listOf(
         Triple(
             if (gender == "Woman") "Exempted" else "In Jamaat",
             viewModel.jamatCount.value,
             StatColors(
-                backgroundColor = if (gender == "Woman") MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.secondaryContainer,
-                iconTint = if (gender == "Woman") Color(0xFF8B5CF6) else Color(0xFF1DD1A1), // Purple for Exempted, teal for In Jamaat
-                barColor = if (gender == "Woman") MaterialTheme.colorScheme.primary.copy(alpha = 0.7f) else MaterialTheme.colorScheme.secondary
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFD1FAE5), // Light green tint
+                iconTint = if (gender == "Woman") Color(0xFF8B5CF6) else Color(0xFF22C55E),
+                barColor = if (gender == "Woman") MaterialTheme.colorScheme.primary else Color(0xFF15803D)
             )
         ),
         Triple(
             "On Time",
             viewModel.onTimeCount.value,
             StatColors(
-                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                iconTint = Color(0xFFFFD92E), // ✅ Fixed yellow for On Time
-                barColor = MaterialTheme.colorScheme.primary
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFDBEAFE), // Light blue tint
+                iconTint = Color(0xFF3B82F6),
+                barColor = Color(0xFF1D4ED8)
             )
         ),
         Triple(
             "Prayed Late",
             viewModel.prayedCount.value,
             StatColors(
-                backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
-                iconTint = Color(0xFFD64F73), // ✅ Fixed pink/red for Prayed Late
-                barColor = MaterialTheme.colorScheme.tertiary
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFFEF3C7), // Light amber tint
+                iconTint = Color(0xFFF59E0B),
+                barColor = Color(0xFFE07B00)
             )
         ),
         Triple(
             "Not Prayed",
             viewModel.notPrayedCount.value,
             StatColors(
-                backgroundColor = MaterialTheme.colorScheme.errorContainer,
-                iconTint = Color(0xFF000000), // ✅ Fixed black for Not Prayed
-                barColor = MaterialTheme.colorScheme.error
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFFEE2E2), // Light red tint
+                iconTint = Color(0xFFEF4444),
+                barColor = Color(0xFFB91C1C)
             )
         )
     )
@@ -129,11 +136,13 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
     // ✅ Tabs will also adapt to dark mode
+  
+
     val tabColors = listOf(
-        MaterialTheme.colorScheme.primary,
-        MaterialTheme.colorScheme.secondary,
-        MaterialTheme.colorScheme.tertiary,
-        MaterialTheme.colorScheme.inversePrimary
+        if (isDark) Color(0xFF22C55E) else Color(0xFF16A34A), // Green shades
+        if (isDark) Color(0xFF3B82F6) else Color(0xFF2563EB), // Blue shades
+        if (isDark) Color(0xFFF59E0B) else Color(0xFFD97706), // Amber shades
+        if (isDark) Color(0xFFEF4444) else Color(0xFFDC2626)  // Red shades
     )
     val tabs = listOf("Week", "Month", "Year", "All Time")
 
@@ -144,11 +153,11 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                     Text(
                         text = "Prayer Stats",
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface // ✅ adapts automatically
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface, // ✅ background follows theme
+                    containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
@@ -160,7 +169,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // ✅ TabRow updated to use theme colors
+            //  TabRow updated to use theme colors
             TabRow(
                 selectedTabIndex = selectedTabIndex,
                 modifier = Modifier.fillMaxWidth(),
@@ -202,7 +211,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                         text = {
                             Text(
                                 text = title,
-                                style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp),
+                                style = MaterialTheme.typography.labelLarge.copy(fontSize = 12.sp),
                                 color = if (selectedTabIndex == index) tabColors[index] else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -240,7 +249,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                             "Not Prayed" -> notPrayedCounts
                             "On Time" -> onTimeCounts
                             "In Jamaat" -> jamatCounts
-                            "Exempted" -> jamatCounts // CHANGED: Use jamatCounts for Exempted // Why: Reuses existing state for female stats
+                            "Exempted" -> jamatCounts
                             else -> emptyMap()
                         },
                         modifier = Modifier.fillMaxWidth()
