@@ -239,7 +239,7 @@ fun PrayerStatusGrid(
             Column(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surface) // ✅ dynamic surface background
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable {
                         viewModel.savePrayerStatus(
                             selectedPrayer.name,
@@ -247,7 +247,6 @@ fun PrayerStatusGrid(
                             value,
                             icon
                         )
-                        // ADDED: Log status selection // Why: Debug which status is selected
                         Log.d("PrayerStatusGrid", "Selected status: $title for ${selectedPrayer.name}")
                         coroutineScope.launch { onClose() }
                     }
@@ -258,14 +257,14 @@ fun PrayerStatusGrid(
                     painter = painterResource(id = icon),
                     contentDescription = title,
                     modifier = Modifier.size(40.dp),
-                    // Updated: Removed colorFilter = ColorFilter.tint(tint) to show original icon colors (e.g., red for not prayed); prevents invisibility on gray background. Why: Tinting (e.g., black on gray) hides icons; matches prayer list rendering.
+                    colorFilter = ColorFilter.tint(tint), // ✅ uses same color from your Triple
                     contentScale = ContentScale.Fit
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = title,
                     fontSize = 14.sp,
-                    color = tint // ✅ keeps status text colored
+                    color = tint // ✅ matches icon color
                 )
             }
         }
