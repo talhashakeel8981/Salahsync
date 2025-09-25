@@ -3,7 +3,14 @@ package com.example.salahsync.DataBase
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "Prayers")
+
+import androidx.room.Index
+
+@Entity(
+    tableName = "Prayers",
+    // 🆕 ADDED: unique index on (date, name) so each prayer for a given date is only stored once
+    indices = [Index(value = ["date", "name"], unique = true)]
+)
 data class PrayerEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

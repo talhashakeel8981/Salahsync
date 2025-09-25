@@ -198,7 +198,15 @@ fun PrayerScreen(
                         value = value,
                         viewModel = viewModel,
                         gender = gender, // ADDED: Pass gender // Why: Enables female-specific Exempted option in grid
-                        onClose = { coroutineScope.launch { sheetState.hide() } }
+                        onClose = {
+                            coroutineScope.launch {
+                                sheetState.hide() // 👈 plays hide animation smoothly
+                            }.invokeOnCompletion {
+                                if (!sheetState.isVisible) {
+                                    selectedPrayer = null // reset after animation
+                                }
+                            }
+                        }
                     )
                 }
             }

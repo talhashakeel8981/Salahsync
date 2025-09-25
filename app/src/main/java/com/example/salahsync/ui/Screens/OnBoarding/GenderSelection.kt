@@ -43,7 +43,7 @@ fun GenderSelectionScreen(
             try {
                 // ADDED: Log before insert // Why: Check if coroutine starts
                 Log.d("GenderSelection", "Starting coroutine for insert")
-                genderDao.insert(Gender(id = 0, genderName = gender))
+                genderDao.insertGender(Gender(id = 0, genderName = gender))
                 // ADDED: Log after insert // Why: Confirm insert completes
                 Log.d("GenderSelection", "Insert completed for $gender")
 

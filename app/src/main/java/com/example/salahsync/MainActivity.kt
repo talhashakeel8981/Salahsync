@@ -41,26 +41,28 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize Room database
+        // ✅ Initialize Room database (removed allowMainThreadQueries)
         val db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
             "prayer_db"
-        )
-            .allowMainThreadQueries()
-            .build()
+        ).build()
 
+        // ✅ Get DAOs
         val prayerDao = db.prayerDao()
         val genderDao = db.genderDao()
+
+        // ✅ Create ViewModel using Factory
         val factory = PrayerViewModelFactory(prayerDao, genderDao)
-        val viewModel = ViewModelProvider(this, factory)[PrayerScreenViewModel::class.java]
+        val prayerViewModel = ViewModelProvider(this, factory)[PrayerScreenViewModel::class.java]
 
         val navigateTo = intent.getStringExtra("navigateTo")
 
+        // ✅ Set up Compose content with theme + navigation
         setContent {
             SalahSyncTheme {
                 AppNavigation(
-                    prayerViewModel = viewModel, // Changed from viewModel to prayerViewModel
+                    prayerViewModel = prayerViewModel,
                     genderDao = genderDao,
                     navigateTo = navigateTo ?: ""
                 )
@@ -68,7 +70,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 //class MainActivity : ComponentActivity() {
 //    override fun onCreate(savedInstanceState: Bundle?) {
 //        super.onCreate(savedInstanceState)

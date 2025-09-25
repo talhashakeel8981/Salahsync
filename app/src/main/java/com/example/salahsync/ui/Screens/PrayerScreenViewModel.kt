@@ -24,6 +24,9 @@ import kotlinx.coroutines.flow.StateFlow
 
 import androidx.compose.ui.graphics.Color // ADDED: Import Color for statusColorMap // Why: Needed to define colors for status icons, including Exempted
 import android.util.Log // ADDED: Import Log for debugging // Why: To log gender loading and database errors
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.database
 
 class PrayerScreenViewModel(
     private val dao: PrayerDao,
@@ -150,18 +153,20 @@ class PrayerScreenViewModel(
         }
     }
 
-    fun savePrayerStatus(name: String, statusRes: Int, date: LocalDate, statusResAgain: Int) {
+    fun savePrayerStatus(name: String, statusRes: Int, date: LocalDate,icon :String) {
         viewModelScope.launch {
             try {
+                // Check if prayer already exists for this date
                 val existingPrayer = dao.getPrayersByDate(date.toString()).find { it.name == name }
 
-                // CHANGED: Map Exempted to jamatCount for females // Why: Reuses jamatCount for Exempted to simplify stats
+                // Handle "Exempted" for Woman (purple icon)
                 val finalStatusRes = if (_userGender.value == "Woman" && statusRes == R.drawable.track) {
-                    statusRes // Store Exempted in database
+                    statusRes // Exempted
                 } else {
-                    statusResAgain // Use original status for males or other cases
+                    statusRes // Normal cases
                 }
 
+                // Create entity
                 val prayerEntity = PrayerEntity(
                     id = existingPrayer?.id ?: 0,
                     name = name,
@@ -170,6 +175,7 @@ class PrayerScreenViewModel(
                     statusRes = finalStatusRes
                 )
 
+                // Insert or update in Room DB
                 if (existingPrayer != null) {
                     dao.updatePrayer(prayerEntity)
                 } else {
@@ -180,13 +186,34 @@ class PrayerScreenViewModel(
                 prayerSelections[name] = finalStatusRes
                 _prayerStatusImages.value = _prayerStatusImages.value.toMutableMap()
                     .apply { put(name, finalStatusRes) }
-                // ADDED: Update status color // Why: Ensures PrayerList reflects new status color (e.g., purple for Exempted)
                 _statusColors.value = _statusColors.value.toMutableMap()
                     .apply { put(name, statusColorMap[finalStatusRes] ?: Color.Transparent) }
-                // ADDED: Log status save // Why: Debug if status (e.g., Exempted) is saved correctly
+
+                // ✅ Upload to Firebase
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                currentUser?.uid?.let { uid ->
+                    val prayerData = mapOf(
+                        "name" to name,
+                        "date" to date.toString(),
+                        "statusRes" to finalStatusRes,
+                        "iconRes" to statusRes
+                    )
+                    FirebaseDatabase.getInstance().getReference("users")
+                        .child(uid)
+                        .child("prayers")
+                        .child(date.toString())
+                        .child(name)
+                        .setValue(prayerData)
+                        .addOnSuccessListener {
+                            Log.d("PrayerScreenViewModel", "✅ Uploaded prayer for $name to Firebase")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("PrayerScreenViewModel", "❌ Firebase upload failed: ${e.message}")
+                        }
+                }
+
                 Log.d("PrayerScreenViewModel", "Saved status for $name: $finalStatusRes")
             } catch (e: Exception) {
-                // ADDED: Error handling // Why: Prevents crashes on database save failure
                 Log.e("PrayerScreenViewModel", "Error saving prayer status: ${e.message}")
             }
         }
@@ -228,6 +255,21 @@ class PrayerScreenViewModel(
         }
     }
 
+    fun savePrayer(prayerEntity: PrayerEntity) {
+        viewModelScope.launch {
+            try {
+                // Save in Room
+                dao.insertPrayer(prayerEntity)
+
+                // Save in Firebase
+                val userId = "123" // replace with actual FirebaseAuth UID
+                val db = com.google.firebase.Firebase.database.reference
+                db.child("prayers").child(userId).push().setValue(prayerEntity)
+            } catch (e: Exception) {
+                Log.e("PrayerScreenViewModel", "Error saving prayer: ${e.message}")
+            }
+        }
+    }
     // ------------------ Period Stats ------------------
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -293,6 +335,7 @@ class PrayerScreenViewModel(
         }
     }
 }
+
 
 // ✅ CHANGED: Factory updated to also accept GenderDao
 class PrayerViewModelFactory(
