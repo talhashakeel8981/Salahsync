@@ -91,14 +91,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-//class MainActivity : ComponentActivity() {
-// override fun onCreate(savedInstanceState: Bundle?) {
-// super.onCreate(savedInstanceState)
-//
-// setContent {
-// FirebaseSyncCheck() // UI wali check
-// }
-//
-// testFirebase() // Background me ek aur test
-// }
-//}
