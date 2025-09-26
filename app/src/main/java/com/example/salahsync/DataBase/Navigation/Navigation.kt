@@ -17,20 +17,26 @@ import com.example.salahsync.ui.Screens.SettingsOptions.DataBackup.AuthViewModel
 import com.example.salahsync.ui.Screens.SettingsOptions.DataBackup.DataBackupScreen
 import com.example.salahsync.ui.Screens.TopBottom
 
+import com.example.salahsync.ui.Screens.TopBottom
+// ADDED: Import PrayerRepository // Why: To pass to screens and ViewModels
+import com.example.salahsync.ui.Screens.SettingsOptions.DataBackup.PrayerRepository
+// ADDED: Import AuthViewModelFactory // Why: To create AuthViewModel with repository
+import com.example.salahsync.ui.Screens.SettingsOptions.DataBackup.AuthViewModelFactory
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(
     prayerViewModel: PrayerScreenViewModel,
-    genderDao: GenderDao,
-    navigateTo: String
+    genderDao: GenderDao, // Kept as-is, but not used directly anymore
+    navigateTo: String,
+    // ADDED: Parameter for repository // Why: To pass to GenderSelectionScreen and AuthViewModel
+    repository: PrayerRepository
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     val onboardingDone = sharedPreferences.getBoolean("onboarding_done", false)
-
     val navController = rememberNavController()
-    val authViewModel: AuthViewModel = viewModel()
-
+    // MODIFIED: Changed viewModel() to viewModel(factory = ...) // Why: Provide repository to AuthViewModel
+    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(repository))
     NavHost(
         navController = navController,
         startDestination = if (onboardingDone) "topbottom" else "welcome"
@@ -39,9 +45,10 @@ fun AppNavigation(
             WelcomeScreen(navController = navController)
         }
         composable("gender_selection") {
+            // MODIFIED: Passed repository instead of genderDao // Why: For saving via repository
             GenderSelectionScreen(
                 navController = navController,
-                genderDao = genderDao
+                repository = repository
             )
         }
         composable("topbottom") {

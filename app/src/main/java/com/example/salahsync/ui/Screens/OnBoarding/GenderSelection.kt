@@ -28,14 +28,19 @@ import com.example.salahsync.DataBase.GenderDao
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+
+// MODIFIED: Removed GenderDao import // Why: Now using repository for data access
+import com.example.salahsync.ui.Screens.SettingsOptions.DataBackup.PrayerRepository // ADDED: Import PrayerRepository // Why: To use repository.saveGender instead of direct DAO
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 @Composable
 fun GenderSelectionScreen(
     navController: NavController,
-    genderDao: GenderDao
+    // MODIFIED: Changed parameter from genderDao: GenderDao to repository: PrayerRepository // Why: Centralize data saving through repository, which handles local + Firebase sync
+    repository: PrayerRepository
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
     fun saveGenderAndNavigate(gender: String) {
         // ADDED: Log button tap // Why: Confirm button click is detected
         Log.d("GenderSelection", "Button tapped for gender: $gender")
@@ -43,10 +48,10 @@ fun GenderSelectionScreen(
             try {
                 // ADDED: Log before insert // Why: Check if coroutine starts
                 Log.d("GenderSelection", "Starting coroutine for insert")
-                genderDao.insertGender(Gender(id = 0, genderName = gender))
+                // MODIFIED: Changed genderDao.insertGender to repository.saveGender // Why: Repository handles saving to local Room and Firebase (if logged in)
+                repository.saveGender(Gender(id = 0, genderName = gender))
                 // ADDED: Log after insert // Why: Confirm insert completes
                 Log.d("GenderSelection", "Insert completed for $gender")
-
                 context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
                     .edit()
                     .putBoolean("onboarding_done", true)
@@ -64,7 +69,6 @@ fun GenderSelectionScreen(
             }
         }
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -78,9 +82,7 @@ fun GenderSelectionScreen(
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
-
         Spacer(modifier = Modifier.height(32.dp))
-
         Button(
             onClick = { saveGenderAndNavigate("Man") },
             modifier = Modifier
@@ -93,9 +95,7 @@ fun GenderSelectionScreen(
         ) {
             Text("Man")
         }
-
         Spacer(modifier = Modifier.height(32.dp))
-
         Button(
             onClick = { saveGenderAndNavigate("Woman") },
             modifier = Modifier
