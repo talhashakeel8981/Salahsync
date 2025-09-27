@@ -33,7 +33,7 @@ class PrayerRepository (
         val userId = firebaseAuth.currentUser?.uid ?: return
         try {
             // MODIFIED: Changed Firestore collection/document/set to Realtime child/setValue // Why: Adapt to Realtime Database structure
-            db.child("users")
+            db.child("Users")
                 .child(userId)
                 .child("prayers")
                 .child("${prayer.date}_${prayer.name}") // unique by date + name
@@ -66,7 +66,7 @@ class PrayerRepository (
         val userId = firebaseAuth.currentUser?.uid ?: return
         try {
             // MODIFIED: Changed Firestore to Realtime Database // Why: Consistent with requirement
-            db.child("users")
+            db.child("Users")
                 .child(userId)
                 .child("settings")
                 .child("gender")
@@ -110,7 +110,7 @@ class PrayerRepository (
     }
     // ADDED: Private method to save prayer only to Firebase // Why: For sync without duplicating local insert
     private fun savePrayerToFirebase(prayer: PrayerEntity, userId: String) {
-        db.child("users")
+        db.child("Users")
             .child(userId)
             .child("prayers")
             .child("${prayer.date}_${prayer.name}")
@@ -124,7 +124,7 @@ class PrayerRepository (
     }
     // ADDED: Private method to save gender only to Firebase // Why: For sync without duplicating local insert
     private fun saveGenderToFirebase(gender: Gender, userId: String) {
-        db.child("users")
+        db.child("Users")
             .child(userId)
             .child("settings")
             .child("gender")

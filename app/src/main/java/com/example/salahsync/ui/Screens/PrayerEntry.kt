@@ -144,6 +144,12 @@ fun PrayerScreen(
     // ADDED: Observe userGender // Why: Determines whether to show Exempted (female) or In Jamaat (male) in PrayerStatusGrid
     val gender by viewModel.userGender
 
+    // REPLACEMENT START: Add this to reload gender from DB when the screen enters composition (e.g., after returning from settings).
+    LaunchedEffect(Unit) {
+        viewModel.loadGender()
+    }
+    // REPLACEMENT END
+
     LaunchedEffect(value) {
         viewModel.loadPrayers(value)
         // Updated: Removed viewModel.loadStats(value). Why: Fixes "Unresolved reference 'loadStats'" error—original loadStats was replaced by loadStatsForPeriod in ViewModel for tab-based period loading; this call is redundant as StatsScreen loads its own data independently. PrayerScreen only needs daily prayer data.

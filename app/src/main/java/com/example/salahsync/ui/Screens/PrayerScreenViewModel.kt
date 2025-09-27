@@ -43,9 +43,9 @@ class PrayerScreenViewModel(
     // After: Added `_userGender` as state to control which bottom sheet (male/female) to show.
     private val _userGender = mutableStateOf("Man")
     val userGender: State<String> = _userGender // Exposed to UI (read-only)
-    init {
-        // ✅ NEW: Load gender from DB once ViewModel is initialized
-        // Why: Ensures UI knows whether to show "Jamaat" (male) or "Exempted" (female)
+
+    // REPLACEMENT START: Extracted gender loading to a reusable function for on-demand reloads (e.g., when screen re-enters).
+    fun loadGender() {
         viewModelScope.launch {
             try {
                 // MODIFIED: Changed genderDao.getGender to repository.getGender // Why: Use centralized repository
@@ -59,6 +59,11 @@ class PrayerScreenViewModel(
                 _userGender.value = "Man" // Fallback to "Man" on error
             }
         }
+    }
+    // REPLACEMENT END
+
+    init {
+        loadGender()  // Call the new function for initial load.
     }
     // ------------------ Counts ------------------
     private val _prayedCount = mutableStateOf(0)

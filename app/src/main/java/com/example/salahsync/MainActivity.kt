@@ -20,8 +20,8 @@ import com.example.salahsync.ui.Screens.SettingsOptions.NotificationScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
 
 
-import com.example.salahsync.ui.Screens.FirebaseSyncCheck
-import com.example.salahsync.ui.Screens.testFirebase
+//import com.example.salahsync.ui.Screens.FirebaseSyncCheck
+//import com.example.salahsync.ui.Screens.testFirebase
 import com.example.salahsync.ui.theme.SalahSyncTheme
 
 import androidx.navigation.compose.NavHost
@@ -43,8 +43,7 @@ import com.example.salahsync.ui.theme.SalahSyncTheme
 import com.example.salahsync.ui.Screens.SettingsOptions.NotificationScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
 import androidx.compose.ui.Modifier
-import com.example.salahsync.ui.Screens.FirebaseSyncCheck
-import com.example.salahsync.ui.Screens.testFirebase
+
 import com.example.salahsync.ui.theme.SalahSyncTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
