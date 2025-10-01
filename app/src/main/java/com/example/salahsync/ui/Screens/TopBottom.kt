@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -27,7 +26,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 //import com.example.salahsync.ui.Screens.Setting.SearchScreen
-import com.example.salahsync.ui.Screens.Setting.SettingScreen
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.Color
@@ -35,35 +33,20 @@ import com.example.salahsync.R
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.*
 
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
 import com.example.salahsync.ui.Screens.Setting.StatsScreen
 
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.rememberCoroutineScope
 
 import kotlinx.coroutines.launch
-import com.example.salahsync.ui.Screens.SettingsOptions.AppearanceScreen
-import com.example.salahsync.ui.Screens.SettingsOptions.HepticFeedBackScreen
-import com.example.salahsync.ui.Screens.SettingsOptions.ManageDeedsScreen
-import com.example.salahsync.ui.Screens.SettingsOptions.NotificationScreen
-import com.example.salahsync.ui.Screens.SettingsOptions.PrivacyPolicyScreen
 import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter

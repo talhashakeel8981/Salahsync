@@ -1,4 +1,4 @@
-package com.example.salahsync.ui.Screens.SettingsOptions
+package com.example.salahsync.ui.Screens.Setting.Notification
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -33,7 +33,6 @@ import androidx.core.content.ContextCompat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.Toast
-import com.example.salahsync.ui.Screens.Setting.Notification.NotificationReceiver
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -45,7 +44,6 @@ import android.util.Log
 
 
 import android.provider.Settings
-import com.example.salahsync.ui.Screens.Setting.Notification.NotificationHelper
 
 
 @RequiresApi(Build.VERSION_CODES.O)
