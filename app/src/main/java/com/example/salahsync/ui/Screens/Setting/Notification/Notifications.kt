@@ -44,6 +44,9 @@ import android.util.Log
 
 
 import android.provider.Settings
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -323,16 +326,24 @@ fun TimePickerBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("❌", modifier = Modifier.clickable { onDismiss() })
-                Text("✅", modifier = Modifier.clickable {
-                    val finalHour = if (is24h) {
-                        selectedHour
-                    } else {
-                        if (isAm) if (selectedHour == 12) 0 else selectedHour
-                        else if (selectedHour == 12) 12 else selectedHour + 12
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Close",
+                    modifier = Modifier.clickable { onDismiss() }
+                )
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = "Confirm",
+                    modifier = Modifier.clickable {
+                        val finalHour = if (is24h) {
+                            selectedHour
+                        } else {
+                            if (isAm) if (selectedHour == 12) 0 else selectedHour
+                            else if (selectedHour == 12) 12 else selectedHour + 12
+                        }
+                        onConfirm(LocalTime.of(finalHour, selectedMinute))
                     }
-                    onConfirm(LocalTime.of(finalHour, selectedMinute))
-                })
+                )
             }
 
             Spacer(Modifier.height(24.dp))
