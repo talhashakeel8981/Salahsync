@@ -219,7 +219,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                 }
             }
 
-            // Stats Grid
+            // Stats Gridsss
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier
