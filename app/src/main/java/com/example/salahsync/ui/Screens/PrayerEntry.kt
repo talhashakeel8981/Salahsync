@@ -54,6 +54,7 @@ import androidx.compose.runtime.*
 import androidx.compose.foundation.lazy.grid.items // CHANGED: Explicitly import the correct 'items' for LazyVerticalGrid
 
 import android.util.Log // ADDED: Import Log for debugging // Why: To log UI interactions and state changes
+import androidx.compose.foundation.isSystemInDarkTheme
 
 // 🎨 Colors
 private val PrimaryBlue = Color(0xFF007AFF)
@@ -66,10 +67,19 @@ private val CardBackgroundGray = Color(0xFFF5F5F5)
 fun PrayerList(
     prayers: List<PrayerTilesData>,
     statusImages: Map<String, Int>, // Updated: Renamed parameter to statusImages for clarity; now expects dynamic map from ViewModel (prayerName → statusRes).
-    statusColors: Map<String, Color>, // ADDED: Parameter for status colors // Why: For dynamic icon tinting (e.g., Exempted in purple)
+    // NEW CHANGE: Removed statusColors parameter // Why: To avoid inconsistency with fixed light colors from ViewModel; now compute adaptive tints directly in UI like in PrayerStatusGrid for dark/light mode support
     onPrayerClick: (PrayerTilesData) -> Unit
 ) {
     val view = LocalView.current
+    // NEW CHANGE: Added isDark and statusResToTint map // Why: Compute adaptive tints here (same as PrayerStatusGrid) for consistency; maps statusRes to dark/light colors without relying on ViewModel's fixed colors
+    val isDark = isSystemInDarkTheme()
+    val statusResToTint = mapOf(
+        R.drawable.notprayed to if (isDark) Color(0xFFB91C1C) else Color(0xFFEF4444),
+        R.drawable.prayedlate to if (isDark) Color(0xFFE07B00) else Color(0xFFF59E0B),
+        R.drawable.prayedontime to if (isDark) Color(0xFF1D4ED8) else Color(0xFF3B82F6),
+        R.drawable.jamat to if (isDark) Color(0xFF15803D) else Color(0xFF22C55E),
+        R.drawable.track to Color(0xFF8B5CF6) // Fixed purple for Exempted (same in both modes)
+    )
     LazyColumn {
         items(prayers) { prayer ->
             Card(
@@ -112,8 +122,8 @@ fun PrayerList(
                             painter = painterResource(id = statusIcon),
                             contentDescription = "Prayer Status",
                             contentScale = ContentScale.Fit,
-                            // CHANGED: Apply dynamic color tint from ViewModel // Why: Ensures correct tinting (e.g., purple for Exempted)
-                            colorFilter = ColorFilter.tint(statusColors[prayer.name] ?: Color.Transparent),
+                            // NEW CHANGE: Compute tint from statusResToTint map // Why: Ensures adaptive dark/light tints (e.g., dark red in dark mode) matching PrayerStatusGrid; falls back to Transparent if unknown
+                            colorFilter = ColorFilter.tint(statusResToTint[statusIcon] ?: Color.Transparent),
                             modifier = Modifier.size(32.dp)
                         )
                     } else {
@@ -165,7 +175,7 @@ fun PrayerScreen(
         PrayerList(
             prayers = prayers, // CHANGED: Use prayers from ViewModel instead of undefined 'prayer'
             statusImages = statusImages, // Updated: Pass dynamic statusImages from ViewModel instead of static map. Why: Ensures selected status icons update and show visibly in the list after bottom sheet selection/save.
-            statusColors = viewModel.statusColors.value, // ADDED: Pass statusColors // Why: For dynamic icon tinting (e.g., Exempted in purple)
+            // NEW CHANGE: Removed passing statusColors // Why: No longer needed; tints now computed adaptively in PrayerList
             onPrayerClick = { clickedPrayer ->
                 selectedPrayer = clickedPrayer
                 coroutineScope.launch { sheetState.show() }
@@ -231,13 +241,34 @@ fun PrayerStatusGrid(
 ) {
     val coroutineScope = rememberCoroutineScope()
     // CHANGED: Replaced Menstruation with Exempted for females // Why: Matches requirement for female-specific status
+    val isDark = isSystemInDarkTheme()
+
+    // --- Step 1: Define all options (single source of truth)
     val options = listOf(
-        Triple("Not Prayed", R.drawable.notprayed, Color(0xFF000000)),
-        Triple("Prayed Late", R.drawable.prayedlate, Color(0xFFD64F73)),
-        Triple("On Time", R.drawable.prayedontime, Color(0xFFFFD92E)),
-        Triple(if (gender == "Woman") "Exempted" else "In Jamaat",
+        Triple(
+            "Not Prayed",
+            R.drawable.notprayed,
+            if (isDark) Color(0xFFB91C1C) else Color(0xFFEF4444) // Dark Red / Light Red
+        ),
+        Triple(
+            "Prayed Late",
+            R.drawable.prayedlate,
+            if (isDark) Color(0xFFE07B00) else Color(0xFFF59E0B) // Dark Amber / Light Amber
+        ),
+        Triple(
+            "On Time",
+            R.drawable.prayedontime,
+            if (isDark) Color(0xFF1D4ED8) else Color(0xFF3B82F6) // Dark Blue / Light Blue
+        ),
+        Triple(
+            if (gender == "Woman") "Exempted" else "In Jamaat",
             if (gender == "Woman") R.drawable.track else R.drawable.jamat,
-            if (gender == "Woman") Color(0xFF8B5CF6) else Color(0xFF1DD1A1))
+            if (gender == "Woman") {
+                Color(0xFF8B5CF6) // Same purple for both modes
+            } else {
+                if (isDark) Color(0xFF15803D) else Color(0xFF22C55E) // Dark Green / Light Green
+            }
+        )
     )
     // ADDED: Log options // Why: Debug which options are displayed based on gender
     Log.d("PrayerStatusGrid", "Gender: $gender, Options: ${options.map { it.first }}")
