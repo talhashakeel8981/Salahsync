@@ -3,6 +3,8 @@ package com.example.salahsync.ui.Screens
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -44,6 +46,8 @@ import com.example.salahsync.ui.Screens.Setting.StatsScreen
 
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.text.font.FontWeight
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 import kotlinx.coroutines.launch
 import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
@@ -312,37 +316,84 @@ fun formatDateLabel(date: LocalDate): String {
 }
 @Composable
 fun SalahBottomBar(navController: NavController) {
+    val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route
+
     NavigationBar(
-        // CHANGED: from Color.White -> MaterialTheme.colorScheme.surface
         containerColor = MaterialTheme.colorScheme.surface
     ) {
-        NavigationBarItem(
-            icon = { Icon(painterResource(id = R.drawable.home), contentDescription = "Home", modifier = Modifier.size(20.dp)) },
-            selected = false,
-            onClick = { navController.navigate("prayer") },
-            colors = NavigationBarItemDefaults.colors(
-                // CHANGED: selectedIconColor from hardcoded gray -> MaterialTheme.colorScheme.primary
-                selectedIconColor = MaterialTheme.colorScheme.primary
-            )
+        val items = listOf(
+            BottomNavItem("prayer", R.drawable.home, "Home"),
+            BottomNavItem("stats", R.drawable.stats, "Stats"),
+            BottomNavItem("settings", null, "Settings") // using icon from Icons.Default
         )
-        NavigationBarItem(
-            icon = { Icon(painterResource(id = R.drawable.stats), contentDescription = "stats", modifier = Modifier.size(20.dp)) },
-            selected = false,
-            onClick = { navController.navigate("stats") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.primary
+
+        items.forEach { item ->
+            val selected = currentDestination == item.route
+
+            // 🔹 Smoothly animate icon color & size
+            val iconColor by animateColorAsState(
+                targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                label = ""
             )
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-            selected = false,
-            onClick = { navController.navigate("settings") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.primary
+            val iconSize by animateDpAsState(
+                targetValue = if (selected) 26.dp else 22.dp,
+                label = ""
             )
-        )
+
+            NavigationBarItem(
+                icon = {
+                    if (item.iconRes != null) {
+                        Icon(
+                            painterResource(id = item.iconRes),
+                            contentDescription = item.label,
+                            tint = iconColor,
+                            modifier = Modifier.size(iconSize)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = item.label,
+                            tint = iconColor,
+                            modifier = Modifier.size(iconSize)
+                        )
+                    }
+                },
+                label = {
+                    Text(
+                        text = item.label,
+                        fontSize = if (selected) 12.sp else 11.sp,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                        color = iconColor
+                    )
+                },
+                selected = selected,
+                onClick = {
+                    if (!selected) {
+                        navController.navigate(item.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                        }
+                    }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = Color.Transparent, // ✅ Remove ripple/hover background
+                    selectedIconColor = iconColor,
+                    unselectedIconColor = iconColor
+                )
+            )
+        }
     }
 }
+
+data class BottomNavItem(
+    val route: String,
+    val iconRes: Int?,
+    val label: String
+)
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview

@@ -66,6 +66,8 @@ import com.example.salahsync.R
 
 import android.util.Log // ADDED: Import Log for debugging // Why: To log stats display and gender
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 
 // Define a data class to hold color configurations for each stat
 data class StatColors(
@@ -99,7 +101,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             if (gender == "Woman") "Exempted" else "In Jamaat",
             viewModel.jamatCount.value,
             StatColors(
-                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFD1FAE5), // Light green tint
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFCBDCEB), // Light green tint
                 iconTint = if (gender == "Woman") Color(0xFF8B5CF6) else Color(0xFF22C55E),
                 barColor = if (gender == "Woman") MaterialTheme.colorScheme.primary else Color(0xFF15803D)
             )
@@ -108,7 +110,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             "On Time",
             viewModel.onTimeCount.value,
             StatColors(
-                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFDBEAFE), // Light blue tint
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFCBDCEB), // Light blue tint
                 iconTint = Color(0xFF3B82F6),
                 barColor = Color(0xFF1D4ED8)
             )
@@ -117,7 +119,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             "Prayed Late",
             viewModel.prayedCount.value,
             StatColors(
-                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFFEF3C7), // Light amber tint
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFCBDCEB), // Light amber tint
                 iconTint = Color(0xFFF59E0B),
                 barColor = Color(0xFFE07B00)
             )
@@ -126,7 +128,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             "Not Prayed",
             viewModel.notPrayedCount.value,
             StatColors(
-                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFFEE2E2), // Light red tint
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFCBDCEB), // Light red tint
                 iconTint = Color(0xFFEF4444),
                 barColor = Color(0xFFB91C1C)
             )
@@ -151,18 +153,23 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Prayer Stats",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = "Prayer Insights",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.fillMaxWidth()
+
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = if (isSystemInDarkTheme()) Color(0xFF5D688A) else Color(0xFFCBD5E1),
                     titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+                ),
+                modifier = Modifier.height(45.dp)
             )
-        },
-        modifier = Modifier.fillMaxSize()
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -170,10 +177,14 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                 .padding(paddingValues)
         ) {
             //  TabRow updated to use theme colors
+            val tabBackgroundColor = if (isDark) Color(0xFF5D688A) else Color(0xFFCBD5E1) // 🌞🌙 Different for both themes
+
             TabRow(
                 selectedTabIndex = selectedTabIndex,
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(tabBackgroundColor), // ✅ Applied custom background
+                containerColor = tabBackgroundColor,
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 indicator = { tabPositions ->
                     TabRowDefaults.Indicator(
