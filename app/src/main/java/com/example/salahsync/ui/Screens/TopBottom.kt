@@ -149,7 +149,7 @@ fun DateSlider(
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     // Ensure the LazyRow scrolls to the selected date on initial load
-    LaunchedEffect(selectedDate) {
+    LaunchedEffect(Unit) {
         val index = (totalPastDays + selectedDate.toEpochDay() - today.toEpochDay()).toInt()
         if (index in 0 until (totalPastDays + maxFutureDays + 1)) {
             lazyListState.scrollToItem(index)
@@ -324,7 +324,7 @@ fun SalahBottomBar(navController: NavController) {
         val items = listOf(
             BottomNavItem("prayer", R.drawable.home, "Home"),
             BottomNavItem("stats", R.drawable.stats, "Stats"),
-            BottomNavItem("settings", null, "Settings") // using icon from Icons.Default
+            BottomNavItem("settings", R.drawable.settings, "Settings") // ✅ use same drawable icon style
         )
 
         items.forEach { item ->
@@ -342,21 +342,12 @@ fun SalahBottomBar(navController: NavController) {
 
             NavigationBarItem(
                 icon = {
-                    if (item.iconRes != null) {
-                        Icon(
-                            painterResource(id = item.iconRes),
-                            contentDescription = item.label,
-                            tint = iconColor,
-                            modifier = Modifier.size(iconSize)
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = item.label,
-                            tint = iconColor,
-                            modifier = Modifier.size(iconSize)
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(id = item.iconRes),
+                        contentDescription = item.label,
+                        tint = iconColor,
+                        modifier = Modifier.size(iconSize)
+                    )
                 },
                 label = {
                     Text(
@@ -379,7 +370,7 @@ fun SalahBottomBar(navController: NavController) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = Color.Transparent, // ✅ Remove ripple/hover background
+                    indicatorColor = Color.Transparent,
                     selectedIconColor = iconColor,
                     unselectedIconColor = iconColor
                 )
@@ -388,11 +379,7 @@ fun SalahBottomBar(navController: NavController) {
     }
 }
 
-data class BottomNavItem(
-    val route: String,
-    val iconRes: Int?,
-    val label: String
-)
+data class BottomNavItem(val route: String, val iconRes: Int, val label: String)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

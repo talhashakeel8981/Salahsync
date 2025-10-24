@@ -167,13 +167,13 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                     containerColor = if (isSystemInDarkTheme()) Color(0xFF5D688A) else Color(0xFFCBD5E1),
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 ),
-                modifier = Modifier.height(45.dp)
+                modifier = Modifier.height(90.dp)
             )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
+//                .fillMaxSize()
                 .padding(paddingValues)
         ) {
             //  TabRow updated to use theme colors
