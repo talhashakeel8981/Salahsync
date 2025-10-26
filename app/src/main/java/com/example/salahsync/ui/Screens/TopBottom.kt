@@ -46,15 +46,21 @@ import com.example.salahsync.ui.Screens.Setting.StatsScreen
 
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 import kotlinx.coroutines.launch
 import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
+import kotlinx.coroutines.delay
+
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import android.text.format.DateFormat
 
 // ---------- TopBottom.kt (fixed) ----------
 
@@ -110,6 +116,9 @@ fun SalahTopBar(
             .padding(2.dp, top = 33.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(8.dp))
+
+
         Text(
             text = formatDateLabel(selectedDate),
             // CHANGED: from Color.Black -> MaterialTheme.colorScheme.onSurface
@@ -122,11 +131,13 @@ fun SalahTopBar(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp
         )
-        Spacer(modifier = Modifier.height(8.dp))
         DateSlider(
             selectedDate = selectedDate,
             onDateSelected = onDateSelected
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        RealTimeClockOnly()
+
     }
 }
 @RequiresApi(Build.VERSION_CODES.O)
@@ -137,6 +148,65 @@ fun getHijriDate(date: LocalDate): String {
     val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("en"))
     return hijrahDate.format(formatter)
 }
+
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun RealTimeClockOnly(
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var currentTime by remember { mutableStateOf(LocalDateTime.now()) }
+
+    // 🔁 Update every second
+    LaunchedEffect(Unit) {
+        while (true) {
+            currentTime = LocalDateTime.now()
+            delay(1000)
+        }
+    }
+
+    // 🕒 Detect phone's 24-hour setting
+    val is24HourFormat = DateFormat.is24HourFormat(context)
+    val pattern = if (is24HourFormat) "HH:mm:ss" else "hh:mm:ss a"
+    val timeFormatter = DateTimeFormatter.ofPattern(pattern, Locale.getDefault())
+
+    // 🎨 Colors and UI styling
+    val backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+    val textColor = MaterialTheme.colorScheme.onSurface
+    val accentColor = MaterialTheme.colorScheme.primary
+
+    Column(
+        modifier = modifier
+            .background(backgroundColor, RoundedCornerShape(16.dp))
+            .padding(vertical = 12.dp, horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 🕓 Time
+        Text(
+            text = currentTime.format(timeFormatter),
+            color = accentColor,
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun TimeScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        RealTimeClockOnly()
+    }
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DateSlider(

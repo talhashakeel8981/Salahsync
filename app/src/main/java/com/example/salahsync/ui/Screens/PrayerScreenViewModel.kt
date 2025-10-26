@@ -101,11 +101,11 @@ class PrayerScreenViewModel(
     // ------------------ Prayer Tiles ------------------
     private val _prayers = mutableStateOf(
         listOf(
-            PrayerTilesData("Fajr", R.drawable.ic_fajr),
-            PrayerTilesData("Dhuhr", R.drawable.ic_dhuhur),
-            PrayerTilesData("Asr", R.drawable.ic_asr),
-            PrayerTilesData("Maghrib", R.drawable.ic_maghrib),
-            PrayerTilesData("Isha", R.drawable.ic_esha)
+            PrayerTilesData("Fajr", R.drawable.ic_fajr, R.drawable.bg_fajr),
+            PrayerTilesData("Dhuhr", R.drawable.ic_dhuhur, R.drawable.bg_zohr),
+            PrayerTilesData("Asr", R.drawable.ic_asr, R.drawable.bg_asr),
+            PrayerTilesData("Maghrib", R.drawable.ic_maghrib, R.drawable.bg_maghrib),
+            PrayerTilesData("Isha", R.drawable.ic_esha, R.drawable.bg_esha)
         )
     )
     val prayers: State<List<PrayerTilesData>> = _prayers
