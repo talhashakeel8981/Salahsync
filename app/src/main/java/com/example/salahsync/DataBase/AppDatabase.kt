@@ -16,7 +16,7 @@ import com.example.salahsync.DataBase.PrayerEntity // 🛠️ CHANGED: Import Pr
 // ⚡ Include all entities here and bump version when adding new tables
 @Database(
     entities = [PrayerEntity::class, Gender::class],
-    version = 2, // ← incremented to 2 because we added Gender
+    version = 3, // ← incremented to 2 because we added Gender
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

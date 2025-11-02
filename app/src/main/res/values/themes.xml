@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <!-- Your existing theme -->
     <style name="Theme.Salahsync" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Splash theme customization -->
+    <style name="Theme.Salahsync.Splash" parent="Theme.Salahsync">
+        <!-- Background color -->
+        <item name="android:windowSplashScreenBackground">@color/white</item>
+        <!-- Animated icon (default launcher) -->
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <!-- Optional: animation duration -->
+        <item name="android:windowSplashScreenAnimationDuration">1000</item>
+        <!-- Icon background color if needed -->
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/white</item>
+        <!-- Always show icon on Android 13+ -->
+        <item name="android:windowSplashScreenBehavior">icon_preferred</item>
+    </style>
 </resources>
