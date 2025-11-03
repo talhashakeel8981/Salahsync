@@ -24,39 +24,5 @@ import com.example.salahsync.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmailFeedback(onBack: () -> Unit) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    // Center the title text
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text("Email Feedback")
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.leftarrow),
-                            contentDescription = "Back",
-                            tint = Color.Black
-                        )
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        // Screen content
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp)
-        ) {
-            // Add your toggle here
 
-        }
-    }
 }

@@ -2,6 +2,7 @@ package com.example.salahsync.ui.Screens.Setting
 
 //import androidx.compose.foundation.R
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,7 +55,24 @@ fun SettingScreen(
     rateus:()-> Unit,
 ) {
 
-    val contextkiinvite = LocalContext.current
+
+
+
+    val context = LocalContext.current
+
+    // ✅ Define email feedback intent
+    val sendFeedbackEmail = {
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:xyz@gmail.com")
+            putExtra(Intent.EXTRA_SUBJECT, "Feedback on SalahSync App")
+            putExtra(Intent.EXTRA_TEXT, "Hi, I’d like to share some feedback...")
+        }
+
+        if (intent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(intent)
+        }
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -105,14 +123,33 @@ fun SettingScreen(
                             putExtra(Intent.EXTRA_TEXT, "Join me on SalahSync! Track your prayers and stay connected. Download now: [Your App Link]")
                             type = "text/plain"
                         }
-                        contextkiinvite.startActivity(Intent.createChooser(shareIntent, "Invite Friends via"))
+                        context.startActivity(Intent.createChooser(shareIntent, "Invite Friends via"))
                     }
                 )
             }
-            item{ SettingItem(
-                icon = painterResource(R.drawable.sendfeedback),
-                title = "Send Feedback",
-                onClick = emailfeedback)
+            item {
+                val context = LocalContext.current
+
+                SettingItem(
+                    icon = painterResource(R.drawable.sendfeedback),
+                    title = "Send Feedback",
+                    onClick = {
+                        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:") // 👈 this must be present!
+                            putExtra(Intent.EXTRA_EMAIL, arrayOf("Support@Salahsync.com"))
+                            putExtra(Intent.EXTRA_SUBJECT, "Feedback on SalahSync App")
+                            putExtra(Intent.EXTRA_TEXT, "Hi team,\n\nI’d like to share the following feedback:\n\n")
+                        }
+
+                        try {
+                            context.startActivity(
+                                Intent.createChooser(emailIntent, "Send Feedback via Email")
+                            )
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                )
             }
             item { SettingItem(icon = painterResource(R.drawable.rate), title = "Love Salahsync? Rate Us", onClick = rateus )}
             item { SettingItem(icon = painterResource(R.drawable.privacypolicy), title = "Privacy policy", onClick = onPrivacyPolicyClick) }
