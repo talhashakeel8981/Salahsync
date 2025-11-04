@@ -140,14 +140,7 @@ fun SalahTopBar(
 
     }
 }
-@RequiresApi(Build.VERSION_CODES.O)
-fun getHijriDate(date: LocalDate): String {
-    // Convert LocalDate to HijrahDate (Islamic Umm Al-Qura calendar)
-    val hijrahDate = HijrahDate.from(date)
-    // Format the Hijri date (e.g., "2 Rabi‘ al-awwal 1447")
-    val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("en"))
-    return hijrahDate.format(formatter)
-}
+
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -448,7 +441,14 @@ fun SalahBottomBar(navController: NavController) {
         }
     }
 }
-
+@RequiresApi(Build.VERSION_CODES.O)
+fun getHijriDate(date: LocalDate): String {
+    // Convert LocalDate to HijrahDate (Islamic Umm Al-Qura calendar)
+    val hijrahDate = HijrahDate.from(date)
+    // Format the Hijri date (e.g., "2 Rabi‘ al-awwal 1447")
+    val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("en"))
+    return hijrahDate.format(formatter)
+}
 data class BottomNavItem(val route: String, val iconRes: Int, val label: String)
 
 @RequiresApi(Build.VERSION_CODES.O)

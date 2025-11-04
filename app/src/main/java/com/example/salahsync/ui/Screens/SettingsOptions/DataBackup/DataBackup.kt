@@ -66,7 +66,8 @@ fun DataBackupScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.leftarrow),
                             contentDescription = "Back",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
+
                         )
                     }
                 }

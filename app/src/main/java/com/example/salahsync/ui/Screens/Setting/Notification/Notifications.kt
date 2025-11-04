@@ -106,7 +106,7 @@ fun NotificationScreen(onBack: () -> Unit) {
                             // Accessibility description for screen readers
                             contentDescription = "Back",
                             // Sets icon tint to black
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
