@@ -56,6 +56,8 @@ import androidx.compose.foundation.lazy.grid.items // CHANGED: Explicitly import
 import android.util.Log // ADDED: Import Log for debugging // Why: To log UI interactions and state changes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.text.font.FontWeight
 
 // 🎨 Colors
@@ -298,47 +300,67 @@ fun PrayerStatusGrid(
             }
         )
     )
-    // ADDED: Log options // Why: Debug which options are displayed based on gender
-    Log.d("PrayerStatusGrid", "Gender: $gender, Options: ${options.map { it.first }}")
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+
+    // ADDED: Wrap content in Box to overlay close button on top
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-        horizontalArrangement = Arrangement.spacedBy(20.dp)
+            .padding(top = 8.dp, end = 8.dp)
     ) {
-        items(options) { (title, icon, tint) ->
-            Column(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .clickable {
-                        viewModel.savePrayerStatus(
-                            selectedPrayer.name,
-                            icon,
-                            value,
-                            icon
-                        )
-                        Log.d("PrayerStatusGrid", "Selected status: $title for ${selectedPrayer.name}")
-                        coroutineScope.launch { onClose() }
-                    }
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Image(
-                    painter = painterResource(id = icon),
-                    contentDescription = title,
-                    modifier = Modifier.size(40.dp),
-                    colorFilter = ColorFilter.tint(tint), // ✅ uses same color from your Triple
-                    contentScale = ContentScale.Fit
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = title,
-                    fontSize = 14.sp,
-                    color = tint // ✅ matches icon color
-                )
+
+        // ADDED: Cross (Close) button at top-right corner
+        IconButton(
+            onClick = { onClose() },
+            modifier = Modifier.align(Alignment.TopEnd)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Close",
+                tint = if (isDark) Color.White else Color.Black // ADDED: Theme-based tint
+            )
+        }
+
+        // ADDED: Shift grid down so it doesn’t overlap the close button
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            items(options) { (title, icon, tint) ->
+                Column(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .clickable {
+                            viewModel.savePrayerStatus(
+                                selectedPrayer.name,
+                                icon,
+                                value,
+                                icon
+                            )
+                            Log.d("PrayerStatusGrid", "Selected status: $title for ${selectedPrayer.name}")
+                            coroutineScope.launch { onClose() } // ADDED: Close sheet after selection
+                        }
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(id = icon),
+                        contentDescription = title,
+                        modifier = Modifier.size(40.dp),
+                        colorFilter = ColorFilter.tint(tint), // ✅ uses same color from your Triple
+                        contentScale = ContentScale.Fit
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = title,
+                        fontSize = 14.sp,
+                        color = tint // ✅ matches icon color
+                    )
+                }
             }
         }
     }

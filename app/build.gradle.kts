@@ -69,6 +69,8 @@ dependencies {
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.material.icons.core.android)
+    implementation(libs.androidx.material.icons.core.android)
     val room_version = "2.7.2"
 
 
