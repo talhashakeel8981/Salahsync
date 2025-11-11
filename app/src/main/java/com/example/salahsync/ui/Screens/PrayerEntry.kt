@@ -54,6 +54,7 @@ import androidx.compose.runtime.*
 import androidx.compose.foundation.lazy.grid.items // CHANGED: Explicitly import the correct 'items' for LazyVerticalGrid
 
 import android.util.Log // ADDED: Import Log for debugging // Why: To log UI interactions and state changes
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -61,6 +62,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.text.font.FontWeight
 
 // 🎨 Colors
+// Colors
+// Colors
 private val PrimaryBlue = Color(0xFF007AFF)
 private val BackgroundLightGray = Color(0xFFF3F5F8)
 private val CardBackgroundGray = Color(0xFFF5F5F5)
@@ -95,7 +98,7 @@ fun PrayerList(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 8.dp)
-                    .height(110.dp)
+                    .height(150.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .clickable {
                         onPrayerClick(prayer)
@@ -103,7 +106,7 @@ fun PrayerList(
                         Log.d("PrayerList", "Clicked prayer: ${prayer.name}")
                     }
             ) {
-                // 🆕 Background image for each prayer
+                // Background image for each prayer
                 Image(
                     painter = painterResource(id = prayer.backgroundRes),
                     contentDescription = "${prayer.name} background",
@@ -169,83 +172,70 @@ fun PrayerList(
 }
 
 // ---------------------------
-// 🧩 PRAYER SCREEN
+// PRAYER SCREEN
 // ---------------------------
 
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun PrayerScreen(
-        value: LocalDate,
-        viewModel: PrayerScreenViewModel // Assuming you have this ViewModel
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PrayerScreen(
+    value: LocalDate,
+    viewModel: PrayerScreenViewModel // Assuming you have this ViewModel
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
+    var selectedPrayer by remember { mutableStateOf<PrayerTilesData?>(null) }
+
+    val statusImages by viewModel.prayerStatusImages
+    val prayers by viewModel.prayers
+    val gender by viewModel.userGender
+
+    LaunchedEffect(Unit) {
+        viewModel.loadGender()
+    }
+
+    LaunchedEffect(value) {
+        viewModel.loadPrayers(value)
+        Log.d("PrayerScreen", "Current gender: $gender")
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        val coroutineScope = rememberCoroutineScope()
-        var selectedPrayer by remember { mutableStateOf<PrayerTilesData?>(null) }
+        PrayerList(
+            prayers = prayers,
+            statusImages = statusImages,
+            onPrayerClick = { clickedPrayer ->
+                selectedPrayer = clickedPrayer
+                coroutineScope.launch { sheetState.show() }
+            }
+        )
 
-        val statusImages by viewModel.prayerStatusImages
-        val prayers by viewModel.prayers
-        val gender by viewModel.userGender
-
-        LaunchedEffect(Unit) {
-            viewModel.loadGender()
-        }
-
-        LaunchedEffect(value) {
-            viewModel.loadPrayers(value)
-            Log.d("PrayerScreen", "Current gender: $gender")
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            PrayerList(
-                prayers = prayers,
-                statusImages = statusImages,
-                onPrayerClick = { clickedPrayer ->
-                    selectedPrayer = clickedPrayer
-                    coroutineScope.launch { sheetState.show() }
-                }
-            )
-
-            if (sheetState.isVisible && selectedPrayer != null) {
-                ModalBottomSheet(
-                    onDismissRequest = {
-                        coroutineScope.launch { sheetState.hide() }
-                    },
-                    sheetState = sheetState,
-                    containerColor = MaterialTheme.colorScheme.surface
+        if (sheetState.isVisible && selectedPrayer != null) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    coroutineScope.launch { sheetState.hide() }
+                },
+                sheetState = sheetState,
+                containerColor = MaterialTheme.colorScheme.surface
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.62f)
+                        .padding(PaddingValues(horizontal = 24.dp)), // CHANGED: Removed top padding to position button higher (closer to top edge)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
+                    // ADDED: Cross button at top-right of bottom sheet
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fillMaxHeight(0.62f)
-                            .padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        // REMOVED: .padding(bottom = 8.dp) to keep button higher, no extra space below
                     ) {
-                        Image(
-                            painter = painterResource(id = selectedPrayer!!.iconRes),
-                            contentDescription = selectedPrayer!!.name,
-                            modifier = Modifier.size(64.dp),
-                            colorFilter = ColorFilter.tint(Color(0xFF1D4ED8)),
-                            contentScale = ContentScale.Fit
-                        )
-
-                        Text(
-                            text = "How did you complete ${selectedPrayer?.name} today?",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        // Your existing status grid
-                        PrayerStatusGrid(
-                            selectedPrayer = selectedPrayer!!,
-                            value = value,
-                            viewModel = viewModel,
-                            gender = gender,
-                            onClose = {
+                        IconButton(
+                            onClick = {
                                 coroutineScope.launch {
                                     sheetState.hide()
                                 }.invokeOnCompletion {
@@ -253,13 +243,71 @@ fun PrayerList(
                                         selectedPrayer = null
                                     }
                                 }
-                            }
-                        )
+                            },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .size(40.dp)
+                                .background(
+                                    color = if (isSystemInDarkTheme())
+                                        Color.White.copy(alpha = 0.1f)
+                                    else
+                                        Color.Black.copy(alpha = 0.05f),
+                                    shape = CircleShape
+                                )
+                                .border(
+                                    width = 1.5.dp,
+                                    color = if (isSystemInDarkTheme())
+                                        Color.White.copy(alpha = 0.3f)
+                                    else
+                                        Color.Black.copy(alpha = 0.2f),
+                                    shape = CircleShape
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = if (isSystemInDarkTheme()) Color.White else Color.Black,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     }
+
+                    Image(
+                        painter = painterResource(id = selectedPrayer!!.iconRes),
+                        contentDescription = selectedPrayer!!.name,
+                        modifier = Modifier.size(64.dp),
+                        colorFilter = ColorFilter.tint(Color(0xFF1D4ED8)),
+                        contentScale = ContentScale.Fit
+                    )
+
+                    Text(
+                        text = "How did you complete ${selectedPrayer?.name} today?",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    // Your existing status grid
+                    PrayerStatusGrid(
+                        selectedPrayer = selectedPrayer!!,
+                        value = value,
+                        viewModel = viewModel,
+                        gender = gender,
+                        onClose = {
+                            coroutineScope.launch {
+                                sheetState.hide()
+                            }.invokeOnCompletion {
+                                if (!sheetState.isVisible) {
+                                    selectedPrayer = null
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }
     }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PrayerStatusGrid(
@@ -300,67 +348,47 @@ fun PrayerStatusGrid(
             }
         )
     )
-
-    // ADDED: Wrap content in Box to overlay close button on top
-    Box(
+    // ADDED: Log options // Why: Debug which options are displayed based on gender
+    Log.d("PrayerStatusGrid", "Gender: $gender, Options: ${options.map { it.first }}")
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, end = 8.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-
-        // ADDED: Cross (Close) button at top-right corner
-        IconButton(
-            onClick = { onClose() },
-            modifier = Modifier.align(Alignment.TopEnd)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Close",
-                tint = if (isDark) Color.White else Color.Black // ADDED: Theme-based tint
-            )
-        }
-
-        // ADDED: Shift grid down so it doesn’t overlap the close button
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-            horizontalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            items(options) { (title, icon, tint) ->
-                Column(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .clickable {
-                            viewModel.savePrayerStatus(
-                                selectedPrayer.name,
-                                icon,
-                                value,
-                                icon
-                            )
-                            Log.d("PrayerStatusGrid", "Selected status: $title for ${selectedPrayer.name}")
-                            coroutineScope.launch { onClose() } // ADDED: Close sheet after selection
-                        }
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Image(
-                        painter = painterResource(id = icon),
-                        contentDescription = title,
-                        modifier = Modifier.size(40.dp),
-                        colorFilter = ColorFilter.tint(tint), // ✅ uses same color from your Triple
-                        contentScale = ContentScale.Fit
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = title,
-                        fontSize = 14.sp,
-                        color = tint // ✅ matches icon color
-                    )
-                }
+        items(options) { (title, icon, tint) ->
+            Column(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .clickable {
+                        viewModel.savePrayerStatus(
+                            selectedPrayer.name,
+                            icon,
+                            value,
+                            icon
+                        )
+                        Log.d("PrayerStatusGrid", "Selected status: $title for ${selectedPrayer.name}")
+                        coroutineScope.launch { onClose() }
+                    }
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(id = icon),
+                    contentDescription = title,
+                    modifier = Modifier.size(40.dp),
+                    colorFilter = ColorFilter.tint(tint), // uses same color from your Triple
+                    contentScale = ContentScale.Fit
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = title,
+                    fontSize = 14.sp,
+                    color = tint // matches icon color
+                )
             }
         }
     }
