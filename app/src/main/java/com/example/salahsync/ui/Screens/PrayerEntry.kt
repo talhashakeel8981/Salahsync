@@ -60,7 +60,41 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.*
 
+import androidx.compose.ui.draw.clip
+
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.isSystemInDarkTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.ui.draw.scale
+
+import androidx.compose.ui.draw.clip
+
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 // 🎨 Colors
 // Colors
 // Colors
@@ -230,10 +264,26 @@ fun PrayerScreen(
                 ) {
                     // ADDED: Cross button at top-right of bottom sheet
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                        // REMOVED: .padding(bottom = 8.dp) to keep button higher, no extra space below
+                        modifier = Modifier.fillMaxWidth()
                     ) {
+                        val coroutineScope = rememberCoroutineScope()
+                        var showCloseButton by remember { mutableStateOf(false) }
+
+                        // Delay appearance
+                        LaunchedEffect(Unit) {
+                            delay(1000)
+                            showCloseButton = true
+                        }
+
+                        // Animate scale and alpha for whole button
+                        val scale by animateFloatAsState(
+                            targetValue = if (showCloseButton) 1f else 0f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )
+                        )
+
                         IconButton(
                             onClick = {
                                 coroutineScope.launch {
@@ -247,12 +297,17 @@ fun PrayerScreen(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .size(40.dp)
+                                .graphicsLayer { // animate entire button
+                                    scaleX = scale
+                                    scaleY = scale
+                                    alpha = scale
+                                }
+                                .clip(CircleShape)
                                 .background(
                                     color = if (isSystemInDarkTheme())
                                         Color.White.copy(alpha = 0.1f)
                                     else
-                                        Color.Black.copy(alpha = 0.05f),
-                                    shape = CircleShape
+                                        Color.Black.copy(alpha = 0.05f)
                                 )
                                 .border(
                                     width = 1.5.dp,
@@ -271,7 +326,6 @@ fun PrayerScreen(
                             )
                         }
                     }
-
                     Image(
                         painter = painterResource(id = selectedPrayer!!.iconRes),
                         contentDescription = selectedPrayer!!.name,
