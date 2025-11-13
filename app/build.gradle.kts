@@ -72,6 +72,12 @@ dependencies {
     implementation(libs.androidx.material.icons.core.android)
     implementation(libs.androidx.material.icons.core.android)
     implementation(libs.androidx.animation.core.android)
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.glance)
     val room_version = "2.7.2"
 
 
@@ -103,6 +109,10 @@ dependencies {
 //Firebase Authentication
 
     implementation ("com.google.firebase:firebase-auth")
+
+//glance api
+    implementation ("androidx.glance:glance-appwidget:1.3.0")  // latest stable
+
 
 
     testImplementation(libs.junit)

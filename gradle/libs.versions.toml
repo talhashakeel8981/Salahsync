@@ -23,6 +23,8 @@ googleGmsGoogleServices = "4.4.3"
 firebaseDatabase = "22.0.0"
 materialIconsCoreAndroid = "1.6.6"
 animationCoreAndroid = "1.7.2"
+glanceAppwidget = "1.1.1"
+glance = "1.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -53,6 +55,8 @@ androidx-foundation-android = { group = "androidx.compose.foundation", name = "f
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
 androidx-material-icons-core-android = { group = "androidx.compose.material", name = "material-icons-core-android", version.ref = "materialIconsCoreAndroid" }
 androidx-animation-core-android = { group = "androidx.compose.animation", name = "animation-core-android", version.ref = "animationCoreAndroid" }
+androidx-glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glanceAppwidget" }
+androidx-glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
