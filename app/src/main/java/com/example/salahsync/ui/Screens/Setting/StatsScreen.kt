@@ -65,6 +65,7 @@ import androidx.compose.ui.draw.clip
 import com.example.salahsync.R
 
 import android.util.Log // ADDED: Import Log for debugging // Why: To log stats display and gender
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.ui.text.font.FontWeight
@@ -156,7 +157,6 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
                     Text(
                         text = "Prayer Insights",
                         style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.SemiBold
                         ),
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -175,13 +175,16 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             //  TabRow updated to use theme colors
             val tabBackgroundColor = if (isDark) Color(0xFF5D688A) else Color(0xFFCBD5E1) // 🌞🌙 Different for both themes
 
+            val selectedBackground = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+            val focusBackground = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+
             TabRow(
                 selectedTabIndex = selectedTabIndex,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(tabBackgroundColor), // ✅ Applied custom background
+                    .background(tabBackgroundColor),
                 containerColor = tabBackgroundColor,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                contentColor = Color.White,
                 indicator = { tabPositions ->
                     TabRowDefaults.Indicator(
                         modifier = Modifier
@@ -194,37 +197,38 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             ) {
                 tabs.forEachIndexed { index, title ->
                     val interactionSource = remember { MutableInteractionSource() }
+                    val isPressed by interactionSource.collectIsPressedAsState()
                     val isFocused by interactionSource.collectIsFocusedAsState()
+
+                    val bgColor =
+                        when {
+                            selectedTabIndex == index -> selectedBackground
+                            isPressed || isFocused -> focusBackground
+                            else -> Color.Transparent
+                        }
+
                     Tab(
                         selected = selectedTabIndex == index,
-                        onClick = {
-                            selectedTabIndex = index
-                            // ADDED: Log tab selection // Why: Debug which tab is selected
-                            Log.d("StatsScreen", "Selected tab: $title")
-                        },
+                        onClick = { selectedTabIndex = index },
                         modifier = Modifier
                             .padding(horizontal = 10.dp, vertical = 15.dp)
-                            .background(
-                                color = when {
-                                    selectedTabIndex == index -> tabColors[index].copy(alpha = 0.15f)
-                                    isFocused -> MaterialTheme.colorScheme.surfaceVariant
-                                    else -> Color.Transparent
-                                },
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .focusable()
+                            .background(bgColor, RoundedCornerShape(10.dp))
                             .height(45.dp),
                         interactionSource = interactionSource,
                         text = {
                             Text(
                                 text = title,
                                 style = MaterialTheme.typography.labelLarge.copy(fontSize = 12.sp),
-                                color = if (selectedTabIndex == index) tabColors[index] else MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (selectedTabIndex == index)
+                                    Color.White
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     )
                 }
             }
+
 
             // Stats Gridsss
             LazyVerticalGrid(
