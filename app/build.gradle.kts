@@ -69,6 +69,9 @@ dependencies {
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.material.icons.core.android)
+    implementation(libs.androidx.material.icons.core.android)
+    implementation(libs.androidx.animation.core.android)
     val room_version = "2.7.2"
 
 
@@ -91,7 +94,8 @@ dependencies {
     // Firebase BOM (Bill of Materials) - version handle karega
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
 
-
+//for splash screen
+    implementation ("androidx.core:core-splashscreen:1.0.0")
 
 // Firestore
     implementation("com.google.firebase:firebase-firestore-ktx")

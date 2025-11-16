@@ -106,7 +106,7 @@ fun NotificationScreen(onBack: () -> Unit) {
                             // Accessibility description for screen readers
                             contentDescription = "Back",
                             // Sets icon tint to black
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -252,6 +252,30 @@ fun DailyReminderToggle(
             // Resets pending flag
             pendingSchedule = false
         }
+    }
+
+    // New code: Conditional banner (slider) at the top of the toggle UI if notification toggle is disabled and exact alarm permission is not granted.
+    // This displays a clickable warning card prompting the user to enable both, navigating to exact alarm settings on tap.
+    // The banner uses error container colors for visibility and only shows on Android 12+ where exact alarms are restricted.
+    // It does not set pendingSchedule since the toggle is off; user must enable toggle separately after granting permission.
+    if (!isChecked && !hasExactAlarmPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    Toast.makeText(context, "Please enable exact alarms in settings", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                    exactAlarmLauncher.launch(intent)
+                },
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+        ) {
+            Text(
+                text = "Please enable your notification and exact alarm",
+                modifier = Modifier.padding(16.dp),
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
     }
 
     // Main vertical Column for toggle UI

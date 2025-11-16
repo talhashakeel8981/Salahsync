@@ -3,6 +3,8 @@ package com.example.salahsync.ui.Screens
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -44,13 +46,21 @@ import com.example.salahsync.ui.Screens.Setting.StatsScreen
 
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 import kotlinx.coroutines.launch
 import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
+import kotlinx.coroutines.delay
+
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import android.text.format.DateFormat
 
 // ---------- TopBottom.kt (fixed) ----------
 
@@ -106,6 +116,9 @@ fun SalahTopBar(
             .padding(2.dp, top = 33.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(8.dp))
+
+
         Text(
             text = formatDateLabel(selectedDate),
             // CHANGED: from Color.Black -> MaterialTheme.colorScheme.onSurface
@@ -118,21 +131,75 @@ fun SalahTopBar(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp
         )
-        Spacer(modifier = Modifier.height(8.dp))
         DateSlider(
             selectedDate = selectedDate,
             onDateSelected = onDateSelected
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        RealTimeClockOnly()
+
     }
 }
+
+
+
 @RequiresApi(Build.VERSION_CODES.O)
-fun getHijriDate(date: LocalDate): String {
-    // Convert LocalDate to HijrahDate (Islamic Umm Al-Qura calendar)
-    val hijrahDate = HijrahDate.from(date)
-    // Format the Hijri date (e.g., "2 Rabi‘ al-awwal 1447")
-    val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("en"))
-    return hijrahDate.format(formatter)
+@Composable
+fun RealTimeClockOnly(
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var currentTime by remember { mutableStateOf(LocalDateTime.now()) }
+
+    // 🔁 Update every second
+    LaunchedEffect(Unit) {
+        while (true) {
+            currentTime = LocalDateTime.now()
+            delay(1000)
+        }
+    }
+
+    // 🕒 Detect phone's 24-hour setting
+    val is24HourFormat = DateFormat.is24HourFormat(context)
+    val pattern = if (is24HourFormat) "HH:mm:ss" else "hh:mm:ss a"
+    val timeFormatter = DateTimeFormatter.ofPattern(pattern, Locale.getDefault())
+
+    // 🎨 Colors and UI styling
+    val backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+    val textColor = MaterialTheme.colorScheme.onSurface
+    val accentColor = MaterialTheme.colorScheme.primary
+
+    Column(
+        modifier = modifier
+            .background(backgroundColor, RoundedCornerShape(16.dp))
+            .padding(vertical = 12.dp, horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 🕓 Time
+        Text(
+            text = currentTime.format(timeFormatter),
+            color = accentColor,
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+    }
 }
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun TimeScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        RealTimeClockOnly()
+    }
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DateSlider(
@@ -145,7 +212,7 @@ fun DateSlider(
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     // Ensure the LazyRow scrolls to the selected date on initial load
-    LaunchedEffect(selectedDate) {
+    LaunchedEffect(Unit) {
         val index = (totalPastDays + selectedDate.toEpochDay() - today.toEpochDay()).toInt()
         if (index in 0 until (totalPastDays + maxFutureDays + 1)) {
             lazyListState.scrollToItem(index)
@@ -312,37 +379,78 @@ fun formatDateLabel(date: LocalDate): String {
 }
 @Composable
 fun SalahBottomBar(navController: NavController) {
+    val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route
+
     NavigationBar(
-        // CHANGED: from Color.White -> MaterialTheme.colorScheme.surface
         containerColor = MaterialTheme.colorScheme.surface
     ) {
-        NavigationBarItem(
-            icon = { Icon(painterResource(id = R.drawable.home), contentDescription = "Home", modifier = Modifier.size(20.dp)) },
-            selected = false,
-            onClick = { navController.navigate("prayer") },
-            colors = NavigationBarItemDefaults.colors(
-                // CHANGED: selectedIconColor from hardcoded gray -> MaterialTheme.colorScheme.primary
-                selectedIconColor = MaterialTheme.colorScheme.primary
-            )
+        val items = listOf(
+            BottomNavItem("prayer", R.drawable.home, "Home"),
+            BottomNavItem("stats", R.drawable.stats, "Stats"),
+            BottomNavItem("settings", R.drawable.settings, "Settings") // ✅ use same drawable icon style
         )
-        NavigationBarItem(
-            icon = { Icon(painterResource(id = R.drawable.stats), contentDescription = "stats", modifier = Modifier.size(20.dp)) },
-            selected = false,
-            onClick = { navController.navigate("stats") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.primary
+
+        items.forEach { item ->
+            val selected = currentDestination == item.route
+
+            // 🔹 Smoothly animate icon color & size
+            val iconColor by animateColorAsState(
+                targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                label = ""
             )
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-            selected = false,
-            onClick = { navController.navigate("settings") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.primary
+            val iconSize by animateDpAsState(
+                targetValue = if (selected) 26.dp else 22.dp,
+                label = ""
             )
-        )
+
+            NavigationBarItem(
+                icon = {
+                    Icon(
+                        painter = painterResource(id = item.iconRes),
+                        contentDescription = item.label,
+                        tint = iconColor,
+                        modifier = Modifier.size(iconSize)
+                    )
+                },
+                label = {
+                    Text(
+                        text = item.label,
+                        fontSize = if (selected) 12.sp else 11.sp,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                        color = iconColor
+                    )
+                },
+                selected = selected,
+                onClick = {
+                    if (!selected) {
+                        navController.navigate(item.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                        }
+                    }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = Color.Transparent,
+                    selectedIconColor = iconColor,
+                    unselectedIconColor = iconColor
+                )
+            )
+        }
     }
 }
+@RequiresApi(Build.VERSION_CODES.O)
+fun getHijriDate(date: LocalDate): String {
+    // Convert LocalDate to HijrahDate (Islamic Umm Al-Qura calendar)
+    val hijrahDate = HijrahDate.from(date)
+    // Format the Hijri date (e.g., "2 Rabi‘ al-awwal 1447")
+    val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("en"))
+    return hijrahDate.format(formatter)
+}
+data class BottomNavItem(val route: String, val iconRes: Int, val label: String)
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 @Preview

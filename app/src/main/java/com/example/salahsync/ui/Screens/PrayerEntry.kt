@@ -54,9 +54,50 @@ import androidx.compose.runtime.*
 import androidx.compose.foundation.lazy.grid.items // CHANGED: Explicitly import the correct 'items' for LazyVerticalGrid
 
 import android.util.Log // ADDED: Import Log for debugging // Why: To log UI interactions and state changes
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.*
 
+import androidx.compose.ui.draw.clip
+
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.isSystemInDarkTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.ui.draw.scale
+
+import androidx.compose.ui.draw.clip
+
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 // 🎨 Colors
+// Colors
+// Colors
 private val PrimaryBlue = Color(0xFF007AFF)
 private val BackgroundLightGray = Color(0xFFF3F5F8)
 private val CardBackgroundGray = Color(0xFFF5F5F5)
@@ -66,73 +107,97 @@ private val CardBackgroundGray = Color(0xFFF5F5F5)
 @Composable
 fun PrayerList(
     prayers: List<PrayerTilesData>,
-    statusImages: Map<String, Int>, // Updated: Renamed parameter to statusImages for clarity; now expects dynamic map from ViewModel (prayerName → statusRes).
-    // NEW CHANGE: Removed statusColors parameter // Why: To avoid inconsistency with fixed light colors from ViewModel; now compute adaptive tints directly in UI like in PrayerStatusGrid for dark/light mode support
+    statusImages: Map<String, Int>,
     onPrayerClick: (PrayerTilesData) -> Unit
 ) {
     val view = LocalView.current
-    // NEW CHANGE: Added isDark and statusResToTint map // Why: Compute adaptive tints here (same as PrayerStatusGrid) for consistency; maps statusRes to dark/light colors without relying on ViewModel's fixed colors
     val isDark = isSystemInDarkTheme()
+
+    // Status color map (same as before)
     val statusResToTint = mapOf(
         R.drawable.notprayed to if (isDark) Color(0xFFB91C1C) else Color(0xFFEF4444),
         R.drawable.prayedlate to if (isDark) Color(0xFFE07B00) else Color(0xFFF59E0B),
         R.drawable.prayedontime to if (isDark) Color(0xFF1D4ED8) else Color(0xFF3B82F6),
         R.drawable.jamat to if (isDark) Color(0xFF15803D) else Color(0xFF22C55E),
-        R.drawable.track to Color(0xFF8B5CF6) // Fixed purple for Exempted (same in both modes)
+        R.drawable.track to Color(0xFF8B5CF6)
     )
-    LazyColumn {
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 12.dp)
+    ) {
         items(prayers) { prayer ->
-            Card(
+
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp, start = 10.dp, end = 10.dp)
-                    .height(85.dp)
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .height(150.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .clickable {
                         onPrayerClick(prayer)
                         view.playSoundEffect(SoundEffectConstants.CLICK)
-                        // ADDED: Log prayer click // Why: Debug which prayer is clicked
                         Log.d("PrayerList", "Clicked prayer: ${prayer.name}")
                     }
             ) {
+                // Background image for each prayer
+                Image(
+                    painter = painterResource(id = prayer.backgroundRes),
+                    contentDescription = "${prayer.name} background",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize()
+                )
+
+                // Optional dim overlay to improve contrast
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Color.Black.copy(alpha = 0.35f))
+                )
+
+                // Foreground content (your existing layout)
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface) // ✅ dynamic background
+                        .fillMaxSize()
                         .padding(vertical = 12.dp, horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Image(
-                        painter = painterResource(id = prayer.iconRes),
-                        contentDescription = prayer.name,
-                        colorFilter = ColorFilter.tint(PrimaryBlue),
-                        modifier = Modifier.size(60.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = prayer.name,
-                        modifier = Modifier.weight(1f),
-                        fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.onSurface // ✅ adapts to dark mode
-                    )
-                    val statusIcon = statusImages[prayer.name]
-                    if (statusIcon != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Image(
-                            painter = painterResource(id = statusIcon),
-                            contentDescription = "Prayer Status",
-                            contentScale = ContentScale.Fit,
-                            // NEW CHANGE: Compute tint from statusResToTint map // Why: Ensures adaptive dark/light tints (e.g., dark red in dark mode) matching PrayerStatusGrid; falls back to Transparent if unknown
-                            colorFilter = ColorFilter.tint(statusResToTint[statusIcon] ?: Color.Transparent),
-                            modifier = Modifier.size(32.dp)
+                            painter = painterResource(id = prayer.iconRes),
+                            contentDescription = prayer.name,
+                            colorFilter = ColorFilter.tint(Color.White),
+                            modifier = Modifier.size(60.dp),
+                            contentScale = ContentScale.Fit
                         )
-                    } else {
-                        // Keeps size but stays transparent
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .background(Color.Transparent)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = prayer.name,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
+                    }
+
+                    val statusIcon = statusImages[prayer.name]
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.9f)) // ADDED: Solid white circular background for icon visibility
+                    ) {
+                        if (statusIcon != null) {
+                            Image(
+                                painter = painterResource(id = statusIcon),
+                                contentDescription = "Prayer Status",
+                                contentScale = ContentScale.Fit,
+                                colorFilter = ColorFilter.tint(statusResToTint[statusIcon] ?: Color.Transparent),
+                                modifier = Modifier
+                                    .size(24.dp) // Slightly smaller to fit within the 32.dp circle
+                                    .align(Alignment.Center)
+                            )
+                        }
                     }
                 }
             }
@@ -140,86 +205,153 @@ fun PrayerList(
     }
 }
 
+// ---------------------------
+// PRAYER SCREEN
+// ---------------------------
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrayerScreen(
     value: LocalDate,
-    viewModel: PrayerScreenViewModel
+    viewModel: PrayerScreenViewModel // Assuming you have this ViewModel
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
     var selectedPrayer by remember { mutableStateOf<PrayerTilesData?>(null) }
-    val statusImages by viewModel.prayerStatusImages // Updated: Observe the dynamic state from ViewModel to get latest status icons after load/save.
-    val prayers by viewModel.prayers // NEW: Observe prayers from ViewModel
-    // ADDED: Observe userGender // Why: Determines whether to show Exempted (female) or In Jamaat (male) in PrayerStatusGrid
+
+    val statusImages by viewModel.prayerStatusImages
+    val prayers by viewModel.prayers
     val gender by viewModel.userGender
 
-    // REPLACEMENT START: Add this to reload gender from DB when the screen enters composition (e.g., after returning from settings).
     LaunchedEffect(Unit) {
         viewModel.loadGender()
     }
-    // REPLACEMENT END
 
     LaunchedEffect(value) {
         viewModel.loadPrayers(value)
-        // Updated: Removed viewModel.loadStats(value). Why: Fixes "Unresolved reference 'loadStats'" error—original loadStats was replaced by loadStatsForPeriod in ViewModel for tab-based period loading; this call is redundant as StatsScreen loads its own data independently. PrayerScreen only needs daily prayer data.
-        // ADDED: Log gender in UI // Why: Debug if gender is correctly passed to UI
         Log.d("PrayerScreen", "Current gender: $gender")
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 0.dp)
-            .background(MaterialTheme.colorScheme.background) // ✅ theme-based background
+            .background(MaterialTheme.colorScheme.background)
     ) {
         PrayerList(
-            prayers = prayers, // CHANGED: Use prayers from ViewModel instead of undefined 'prayer'
-            statusImages = statusImages, // Updated: Pass dynamic statusImages from ViewModel instead of static map. Why: Ensures selected status icons update and show visibly in the list after bottom sheet selection/save.
-            // NEW CHANGE: Removed passing statusColors // Why: No longer needed; tints now computed adaptively in PrayerList
+            prayers = prayers,
+            statusImages = statusImages,
             onPrayerClick = { clickedPrayer ->
                 selectedPrayer = clickedPrayer
                 coroutineScope.launch { sheetState.show() }
             }
         )
+
         if (sheetState.isVisible && selectedPrayer != null) {
             ModalBottomSheet(
                 onDismissRequest = {
                     coroutineScope.launch { sheetState.hide() }
                 },
                 sheetState = sheetState,
-                containerColor = MaterialTheme.colorScheme.surface // ✅ sheet color adapts to dark/light
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.8f)
-                        .padding(24.dp),
+                        .fillMaxHeight(0.62f)
+                        .padding(PaddingValues(horizontal = 24.dp)), // CHANGED: Removed top padding to position button higher (closer to top edge)
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // ADDED: Cross button at top-right of bottom sheet
+                    Box(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        val coroutineScope = rememberCoroutineScope()
+                        var showCloseButton by remember { mutableStateOf(false) }
+
+                        // Delay appearance
+                        LaunchedEffect(Unit) {
+                            delay(1000)
+                            showCloseButton = true
+                        }
+
+                        // Animate scale and alpha for whole button
+                        val scale by animateFloatAsState(
+                            targetValue = if (showCloseButton) 1f else 0f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )
+                        )
+
+                        IconButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    sheetState.hide()
+                                }.invokeOnCompletion {
+                                    if (!sheetState.isVisible) {
+                                        selectedPrayer = null
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .size(40.dp)
+                                .graphicsLayer { // animate entire button
+                                    scaleX = scale
+                                    scaleY = scale
+                                    alpha = scale
+                                }
+                                .clip(CircleShape)
+                                .background(
+                                    color = if (isSystemInDarkTheme())
+                                        Color.White.copy(alpha = 0.1f)
+                                    else
+                                        Color.Black.copy(alpha = 0.05f)
+                                )
+                                .border(
+                                    width = 1.5.dp,
+                                    color = if (isSystemInDarkTheme())
+                                        Color.White.copy(alpha = 0.3f)
+                                    else
+                                        Color.Black.copy(alpha = 0.2f),
+                                    shape = CircleShape
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = if (isSystemInDarkTheme()) Color.White else Color.Black,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                    }
                     Image(
                         painter = painterResource(id = selectedPrayer!!.iconRes),
                         contentDescription = selectedPrayer!!.name,
                         modifier = Modifier.size(64.dp),
-                        colorFilter = ColorFilter.tint(PrimaryBlue),
+                        colorFilter = ColorFilter.tint(Color(0xFF1D4ED8)),
                         contentScale = ContentScale.Fit
                     )
+
                     Text(
                         text = "How did you complete ${selectedPrayer?.name} today?",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface // ✅ readable in both themes
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+
+                    // Your existing status grid
                     PrayerStatusGrid(
                         selectedPrayer = selectedPrayer!!,
                         value = value,
                         viewModel = viewModel,
-                        gender = gender, // ADDED: Pass gender // Why: Enables female-specific Exempted option in grid
+                        gender = gender,
                         onClose = {
                             coroutineScope.launch {
-                                sheetState.hide() // 👈 plays hide animation smoothly
+                                sheetState.hide()
                             }.invokeOnCompletion {
                                 if (!sheetState.isVisible) {
-                                    selectedPrayer = null // reset after animation
+                                    selectedPrayer = null
                                 }
                             }
                         }
@@ -302,14 +434,14 @@ fun PrayerStatusGrid(
                     painter = painterResource(id = icon),
                     contentDescription = title,
                     modifier = Modifier.size(40.dp),
-                    colorFilter = ColorFilter.tint(tint), // ✅ uses same color from your Triple
+                    colorFilter = ColorFilter.tint(tint), // uses same color from your Triple
                     contentScale = ContentScale.Fit
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = title,
                     fontSize = 14.sp,
-                    color = tint // ✅ matches icon color
+                    color = tint // matches icon color
                 )
             }
         }

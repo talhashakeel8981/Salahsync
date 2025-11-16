@@ -1,4 +1,5 @@
 package com.example.salahsync.ui.Screens.SettingsOptions
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +36,6 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceScreen(onBack: () -> Unit) {
-    // State to track selected theme
     val themeOptions = listOf("System", "Light", "Dark")
     var selectedTheme by remember { mutableStateOf("System") }
 
@@ -56,14 +56,14 @@ fun AppearanceScreen(onBack: () -> Unit) {
                         Icon(
                             painter = painterResource(id = R.drawable.leftarrow),
                             contentDescription = "Back",
-                            tint = Color.Black
+                            // ✅ Use theme color instead of hardcoded white/black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
             )
         }
     ) { innerPadding ->
-        // Screen content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -76,7 +76,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Theme selection Grown
+            // Theme selection group
             themeOptions.forEach { theme ->
                 Row(
                     modifier = Modifier

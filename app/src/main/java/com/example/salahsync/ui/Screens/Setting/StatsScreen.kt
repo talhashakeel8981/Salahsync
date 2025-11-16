@@ -65,7 +65,11 @@ import androidx.compose.ui.draw.clip
 import com.example.salahsync.R
 
 import android.util.Log // ADDED: Import Log for debugging // Why: To log stats display and gender
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 
 // Define a data class to hold color configurations for each stat
 data class StatColors(
@@ -99,7 +103,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             if (gender == "Woman") "Exempted" else "In Jamaat",
             viewModel.jamatCount.value,
             StatColors(
-                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFD1FAE5), // Light green tint
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFCBDCEB), // Light green tint
                 iconTint = if (gender == "Woman") Color(0xFF8B5CF6) else Color(0xFF22C55E),
                 barColor = if (gender == "Woman") MaterialTheme.colorScheme.primary else Color(0xFF15803D)
             )
@@ -108,7 +112,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             "On Time",
             viewModel.onTimeCount.value,
             StatColors(
-                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFDBEAFE), // Light blue tint
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFCBDCEB), // Light blue tint
                 iconTint = Color(0xFF3B82F6),
                 barColor = Color(0xFF1D4ED8)
             )
@@ -117,7 +121,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             "Prayed Late",
             viewModel.prayedCount.value,
             StatColors(
-                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFFEF3C7), // Light amber tint
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFCBDCEB), // Light amber tint
                 iconTint = Color(0xFFF59E0B),
                 barColor = Color(0xFFE07B00)
             )
@@ -126,7 +130,7 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             "Not Prayed",
             viewModel.notPrayedCount.value,
             StatColors(
-                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFFEE2E2), // Light red tint
+                backgroundColor = if (isDark) Color(0xFF344955) else Color(0xFFCBDCEB), // Light red tint
                 iconTint = Color(0xFFEF4444),
                 barColor = Color(0xFFB91C1C)
             )
@@ -148,33 +152,39 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Prayer Stats",
-                        style = MaterialTheme.typography.titleLarge,
+                        text = "Prayer Insights",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                        ),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
-        },
-        modifier = Modifier.fillMaxSize()
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
+//                .fillMaxSize()
                 .padding(paddingValues)
         ) {
             //  TabRow updated to use theme colors
+            val tabBackgroundColor = if (isDark) Color(0xFF5D688A) else Color(0xFFCBD5E1) // 🌞🌙 Different for both themes
+
+            val selectedBackground = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+            val focusBackground = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+
             TabRow(
                 selectedTabIndex = selectedTabIndex,
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(tabBackgroundColor),
+                containerColor = tabBackgroundColor,
+                contentColor = Color.White,
                 indicator = { tabPositions ->
                     TabRowDefaults.Indicator(
                         modifier = Modifier
@@ -187,37 +197,38 @@ fun StatsScreen(viewModel: PrayerScreenViewModel) {
             ) {
                 tabs.forEachIndexed { index, title ->
                     val interactionSource = remember { MutableInteractionSource() }
+                    val isPressed by interactionSource.collectIsPressedAsState()
                     val isFocused by interactionSource.collectIsFocusedAsState()
+
+                    val bgColor =
+                        when {
+                            selectedTabIndex == index -> selectedBackground
+                            isPressed || isFocused -> focusBackground
+                            else -> Color.Transparent
+                        }
+
                     Tab(
                         selected = selectedTabIndex == index,
-                        onClick = {
-                            selectedTabIndex = index
-                            // ADDED: Log tab selection // Why: Debug which tab is selected
-                            Log.d("StatsScreen", "Selected tab: $title")
-                        },
+                        onClick = { selectedTabIndex = index },
                         modifier = Modifier
                             .padding(horizontal = 10.dp, vertical = 15.dp)
-                            .background(
-                                color = when {
-                                    selectedTabIndex == index -> tabColors[index].copy(alpha = 0.15f)
-                                    isFocused -> MaterialTheme.colorScheme.surfaceVariant
-                                    else -> Color.Transparent
-                                },
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .focusable()
+                            .background(bgColor, RoundedCornerShape(10.dp))
                             .height(45.dp),
                         interactionSource = interactionSource,
                         text = {
                             Text(
                                 text = title,
                                 style = MaterialTheme.typography.labelLarge.copy(fontSize = 12.sp),
-                                color = if (selectedTabIndex == index) tabColors[index] else MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (selectedTabIndex == index)
+                                    Color.White
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     )
                 }
             }
+
 
             // Stats Gridsss
             LazyVerticalGrid(
