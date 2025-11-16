@@ -1,6 +1,8 @@
 package com.example.salahsync.ui.Screens
 
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateColorAsState
@@ -61,12 +63,16 @@ import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import android.text.format.DateFormat
-
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.getValue
 // ---------- TopBottom.kt (fixed) ----------
 
 
 
-// ---------- TopBottom.kt (fixed) ----------
+// ---------- TopBottom.kt (NO ANIMATION + BACK WORKS + RED BAR ON ALL SCREENS) ----------
+// ---------- TopBottom.kt (FIXED: RED BAR HIDDEN ON NOTIFICATIONS + BACK WORKS) ----------
+// ---------- TopBottom.kt (SMOOTH RED BAR + CORRECT SETTINGS NAV) ----------
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TopBottom(
@@ -76,6 +82,58 @@ fun TopBottom(
 ) {
     val bottomNavController = rememberNavController()
     val selectedDate = remember { mutableStateOf(LocalDate.now()) }
+
+    // --- SharedPreferences ---
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("notification_prefs", Context.MODE_PRIVATE)
+
+    var isNotificationsEnabled by remember {
+        mutableStateOf(sharedPreferences.getBoolean("is_notification_enabled", false))
+    }
+    var wasRedBarClicked by remember {
+        mutableStateOf(sharedPreferences.getBoolean("red_bar_clicked", false))
+    }
+
+    // --- Real-time sync ---
+    DisposableEffect(Unit) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+            when (key) {
+                "is_notification_enabled" -> isNotificationsEnabled = prefs.getBoolean(key, false)
+                "red_bar_clicked" -> wasRedBarClicked = prefs.getBoolean(key, false)
+            }
+        }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
+    // --- Observe current route ---
+    val currentRoute by bottomNavController.currentBackStackEntryAsState()
+    val currentScreen = currentRoute?.destination?.route
+
+    // --- Reset red_bar_clicked when leaving notifications ---
+    LaunchedEffect(currentScreen) {
+        if (currentScreen == "prayer" || currentScreen == "stats") {
+            if (wasRedBarClicked && !isNotificationsEnabled) {
+                with(sharedPreferences.edit()) {
+                    putBoolean("red_bar_clicked", false)
+                    apply()
+                }
+            }
+        }
+    }
+
+    // --- SMOOTH STATE: Track if red bar should be visible ---
+    var shouldShowRedBar by remember { mutableStateOf(false) }
+    val isOnPrayerOrStats = currentScreen == "prayer" || currentScreen == "stats"
+    val isOnNotifications = currentScreen?.contains("notifications") == true
+
+    LaunchedEffect(isNotificationsEnabled, wasRedBarClicked, currentScreen) {
+        shouldShowRedBar = !isNotificationsEnabled &&
+                (!wasRedBarClicked || !isOnNotifications) &&
+                isOnPrayerOrStats
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(1f)) {
@@ -95,11 +153,58 @@ fun TopBottom(
                     StatsScreen(viewModel)
                 }
                 composable("settings") {
-                    SettingsNavHost(navController = navController) // Pass top-level navController
+                    SettingsNavHost(
+                        navController = navController,
+                        // FIXED: Only auto-open if red bar was clicked
+                        autoOpenNotifications = wasRedBarClicked && !isNotificationsEnabled
+                    )
                 }
             }
         }
+
+        // --- SMOOTH RED BAR WITH FADE ANIMATION ---
+        AnimatedVisibility(
+            visible = shouldShowRedBar,
+            enter = fadeIn(),
+            exit = fadeOut(animationSpec = tween(300))
+        ) {
+            NotificationPromptBar {
+                // Mark as clicked
+                with(sharedPreferences.edit()) {
+                    putBoolean("red_bar_clicked", true)
+                    apply()
+                }
+
+                bottomNavController.navigate("settings") {
+                    popUpTo("prayer") { saveState = true }
+                    restoreState = true
+                    launchSingleTop = true
+                }
+            }
+        }
+
         SalahBottomBar(bottomNavController)
+    }
+}
+
+// --- SMOOTH RED BAR ---
+@Composable
+fun NotificationPromptBar(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Red)
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Tap here to enable notifications",
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.bodyLarge
+        )
     }
 }
 @RequiresApi(Build.VERSION_CODES.O)
@@ -111,23 +216,18 @@ fun SalahTopBar(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            // CHANGED: from Color.White -> MaterialTheme.colorScheme.surface
             .background(MaterialTheme.colorScheme.surface)
             .padding(2.dp, top = 33.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(8.dp))
-
-
         Text(
             text = formatDateLabel(selectedDate),
-            // CHANGED: from Color.Black -> MaterialTheme.colorScheme.onSurface
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 18.sp
         )
         Text(
             text = getHijriDate(selectedDate),
-            // CHANGED: from Color.Black -> MaterialTheme.colorScheme.onSurfaceVariant
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp
         )
@@ -137,12 +237,8 @@ fun SalahTopBar(
         )
         Spacer(modifier = Modifier.height(8.dp))
         RealTimeClockOnly()
-
     }
 }
-
-
-
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun RealTimeClockOnly(

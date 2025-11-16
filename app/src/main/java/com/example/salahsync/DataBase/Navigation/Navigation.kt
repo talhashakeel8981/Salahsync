@@ -22,21 +22,22 @@ import com.example.salahsync.ui.Screens.TopBottom
 import com.example.salahsync.ui.Screens.SettingsOptions.DataBackup.PrayerRepository
 // ADDED: Import AuthViewModelFactory // Why: To create AuthViewModel with repository
 import com.example.salahsync.ui.Screens.SettingsOptions.DataBackup.AuthViewModelFactory
+import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost
+import com.example.salahsync.ui.Screens.SettingsOptions.SettingsNavHost  // ADDED
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(
     prayerViewModel: PrayerScreenViewModel,
-    genderDao: GenderDao, // Kept as-is, but not used directly anymore
+    genderDao: GenderDao,
     navigateTo: String,
-    // ADDED: Parameter for repository // Why: To pass to GenderSelectionScreen and AuthViewModel
     repository: PrayerRepository
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     val onboardingDone = sharedPreferences.getBoolean("onboarding_done", false)
     val navController = rememberNavController()
-    // MODIFIED: Changed viewModel() to viewModel(factory = ...) // Why: Provide repository to AuthViewModel
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(repository))
+
     NavHost(
         navController = navController,
         startDestination = if (onboardingDone) "topbottom" else "welcome"
@@ -45,7 +46,6 @@ fun AppNavigation(
             WelcomeScreen(navController = navController)
         }
         composable("gender_selection") {
-            // MODIFIED: Passed repository instead of genderDao // Why: For saving via repository
             GenderSelectionScreen(
                 navController = navController,
                 repository = repository
@@ -62,6 +62,14 @@ fun AppNavigation(
             DataBackupScreen(
                 onBack = { navController.popBackStack() },
                 viewModel = authViewModel
+            )
+        }
+
+        // ADDED: Settings route — THIS FIXES THE CRASH
+        composable("settings") {
+            SettingsNavHost(
+                navController = navController,
+                autoOpenNotifications = false  // Will be controlled from TopBottom
             )
         }
     }
