@@ -35,7 +35,7 @@ fun WelcomeScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Welcome to the app..",
+            text = "Welcome to SalahSync",
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onBackground // 🔥 FIXED
         )
@@ -43,7 +43,7 @@ fun WelcomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Who are you?",
+            text = "",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground // 🔥 FIXED
         )

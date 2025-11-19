@@ -10,7 +10,7 @@ object DataBaseProvider {
     @Volatile
     private var INSTANCE: AppDatabase? = null
 
-    // ✅ Migration from version 1 → 2 (adds Gender table)
+    // Migration from version 1 → 2 (adds Gender table)
     private val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL(
